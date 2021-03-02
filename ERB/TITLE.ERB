@@ -1,0 +1,73 @@
+﻿;[라이선스]퍼블릭 도메인
+;본 파일에 관련된 저작권을 포기한다.
+;본 파일에 관한 저작인격권은 행사하지 않는다.
+;2009/6/13 MinorShift(Emuera作者)
+;2010/4/2 MinorShift(Emuera作者) ver 1.736に合わせて一部修正. 
+
+;独自のタイトル画面の例（Emuera ver 1.736以降대상）
+;LOADGAME_EXが定義されていることが前提なので, SAVELOAD.ERBと同時に使用してください. 
+;SAVELOAD.ERBを使用しない場合, CALL LOADGAME_EXをLOADGAMEに置き換えてください. 
+;なお, SYSTEM_TITLEが定義されているとTITLE_LOADGAMEは呼ばれなくなります. 
+;使用している命令の詳細については下記のEmueraWikiを参照してください. 
+;http://sourceforge.jp/projects/emuera/wiki/FrontPage
+
+@SYSTEM_TITLE
+;@SYSTEM_TITLEが定義されていると, 標準のタイトル画面の代わりにSYSTEM_TITLEが呼ばれる. 
+
+;このタイミングでグローバル変数を読んでおけば取りこぼしが無くなる. 
+;GLOBALはRESETDATAやLOADDATAによって初期化・上書きされない. 
+;필요に応じてコメントアウトを解除すること. 
+LOADGLOBAL
+ADDDEFCHARA
+
+;バージョン표기をLOCALS:0に作成. 
+;1001なら1.001, 1100なら1.10と表示されるように. 
+;ここで使用した変数はRESETDATAかLOADDATAによってCLEARされるのでローカル変数を使わなくてもよい. 
+;LOCAL:0 = GAMEBASE_VERSION / 1000
+;LOCAL:1 = GAMEBASE_VERSION % 1000 / 10
+;LOCAL:2 = GAMEBASE_VERSION % 10
+;LOCALS:0 = {LOCAL:0}.%TOSTR(LOCAL:1,"00")%
+;SIF LOCAL:2 != 0
+;	LOCALS:0 = %LOCALS:0%{LOCAL:2}
+
+;タイトル表示. 
+$TITLE_SELECT
+DRAWLINE 
+
+ALIGNMENT CENTER
+PRINTFORML %GAMEBASE_TITLE%
+PRINTFORML Ver. {GAMEBASE_VERSION}
+PRINTFORML %GAMEBASE_AUTHOR%
+PRINTFORML (%GAMEBASE_YEAR%)
+PRINTL 
+PRINTFORML %GAMEBASE_INFO%
+ALIGNMENT LEFT
+
+DRAWLINE 
+
+;선택지表示. _Rename.csvで손가락定した値を読むことはできないのでここで손가락定する필요がある. 
+PRINTL [0] 처음부터 시작한다
+PRINTL [1] 로드해서 시작한다
+
+$TITLE_INPUT
+INPUT
+CLEARLINE 1
+IF RESULT == 0   ;새로시작
+	DRAWLINE
+	RESETDATA
+	BEGIN FIRST
+	RETURN
+ELSEIF RESULT == 1   ;불러오기
+	;GOTO TITLE_SELECT
+	LOADGAME
+	CLEARLINE 100
+	GOTO TITLE_SELECT
+ELSE
+	CLEARLINE 1
+	REUSELASTLINE 유효하지 않은 값입니다
+	GOTO TITLE_INPUT
+ENDIF
+
+;SYSTEM_TITLE中でRETURNすると次に実行する行が無くなり, エラーになる. 
+;必ずBEGIN命令かLOADGAMEを行うこと. 
+

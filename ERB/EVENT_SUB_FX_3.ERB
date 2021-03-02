@@ -1,0 +1,201 @@
+﻿;---------------------------------------
+;@GIVE_RAND_ITEM_NUM, RAND_MIN, RAND_MAX
+;주어진 최소 이상, 최대 미만에서 아이템넘버 랜덤값 구하기
+;---------------------------------------
+@GIVE_RAND_ITEM_NUM, RAND_MIN, RAND_MAX
+#DIM DYNAMIC RAND_MIN
+#DIM DYNAMIC RAND_MAX
+#DIM DYNAMIC TAKE_RAND
+
+WHILE !(RAND_MIN <= TAKE_RAND && TAKE_RAND < RAND_MAX && ITEMNAME:TAKE_RAND != "")
+    TAKE_RAND = (RAND:RAND_MAX)
+WEND
+RETURN TAKE_RAND
+
+;---------------------------------------
+;@GOING_MARKET
+;시장가기
+;#DIM SAVEDATA COMPARE_DAY_MARKET
+;날짜가 변경되었는지 비교용
+;#DIM SAVEDATA MARKET_ITEM_KIND,30
+;시장 아이템들 종류 - 하루동안
+;CALL EVENT_BUY_SOMETHING, LIMIT_ITEM, GOODS_NUM
+;구매 이벤트 처리 함수
+;CALL GIVE_RAND_ITEM_NUM, RAND_MIN, RAND_MAX
+;주어진 최소 이상, 최대 미만에서 아이템넘버 랜덤값 구하기
+;---------------------------------------
+@GOING_MARKET
+#DIM DYNAMIC RAND_NUM
+#DIM DYNAMIC REAL_KIND
+
+REAL_KIND = 10
+
+;ITEMSALES:1600 = 1
+;ITEMSALES:1601 = 1
+
+IF COMPARE_DAY_MARKET != DAY || DAY == 0
+    MARKET_ITEM_KIND:0 = 1600
+    MARKET_ITEM_KIND:1 = 1601
+    REPEAT REAL_KIND
+        CALL GIVE_RAND_ITEM_NUM,1602,2000
+        RAND_NUM = RESULT
+        ;PRINTFORMW RESULT : {RESULT}
+        ;ITEMSALES:RAND_NUM = 1
+        MARKET_ITEM_KIND:(COUNT+2) = RAND_NUM
+    REND
+    COMPARE_DAY_MARKET = DAY
+ENDIF
+
+$INPUT_LOOP
+;출력
+DRAWLINE
+PRINTL
+FONTBOLD ;굵게
+SETFONT "アメリ·ガームンド·BT"
+PRINTFORML     %UNICODE(0x25C8)% Market
+SETFONT
+FONTREGULAR
+PRINTL  
+REPEAT REAL_KIND+2
+    SIF COUNT%3 == 0
+        PRINT  
+    PRINTFORMLC [{MARKET_ITEM_KIND:COUNT}] %ITEMNAME:(MARKET_ITEM_KIND:COUNT)%({ITEMPRICE:(MARKET_ITEM_KIND:COUNT)}%MONEYLABEL%)
+
+    SIF COUNT%3 == 2
+        PRINTL 
+REND
+PRINTL
+PRINTL [0] 돌아가기
+PRINTL
+DRAWLINE
+
+;입력
+INPUT
+CLEARLINE 1
+IF RESULT == 1600 || RESULT == 1601
+    CALL EVENT_BUY_SOMETHING, 99, RESULT
+ELSEIF RESULT == 0
+    RETURN 0
+ELSE
+    REPEAT REAL_KIND
+        SIF MARKET_ITEM_KIND:(COUNT+2) == RESULT
+            CALL EVENT_BUY_SOMETHING, 99, RESULT
+    REND
+ENDIF
+
+GOTO INPUT_LOOP
+
+;---------------------------------------
+;@FIGHT_ABL_UP
+;전투 ABL 상승
+;#DIM SAVEDATA TRAINING_BODY_EXP
+;#DIM SAVEDATA TRAINING_MANA_EXP
+;단련 EXP 세이브용
+;---------------------------------------
+@FIGHT_ABL_UP
+#DIM DYNAMIC UP_POINT = 0
+#DIM DYNAMIC RAND_CHOICE
+
+IF TRAINING_BODY_EXP > 10
+    UP_POINT = TRAINING_BODY_EXP/10
+    TRAINING_BODY_EXP %= 10
+ENDIF
+
+RAND_CHOICE = RAND:3
+IF UP_POINT > 0
+    REPEAT UP_POINT
+        IF RAND_CHOICE == 0
+            ABL:MASTER:91 += 1
+            ;공격력
+            PRINTFORML 아앗..! %CALLNAME:MASTER%의 상태가...!
+            PRINTL 공격력이 1 증가 하였습니다.
+            WAIT
+        ELSEIF RAND_CHOICE == 1
+            ABL:MASTER:92 += 1
+            ;방어력
+            PRINTFORML 아앗..! %CALLNAME:MASTER%의 상태가...!
+            PRINTL 방어력이 1 증가 하였습니다.
+            WAIT
+        ELSEIF RAND_CHOICE == 2
+            MAXBASE:MASTER:0 += 20
+            BASE:MASTER:0 += 20
+            ;체력
+            PRINTFORML 아앗..! %CALLNAME:MASTER%의 상태가...!
+            PRINTL 체력이 20 증가 하였습니다.
+            WAIT
+        ENDIF
+    REND
+ENDIF
+
+UP_POINT = 0
+
+IF TRAINING_MANA_EXP > 10
+    UP_POINT = TRAINING_MANA_EXP/10
+    TRAINING_MANA_EXP %= 10
+ENDIF
+IF UP_POINT > 0
+    REPEAT UP_POINT
+        ABL:MASTER:93 += 1
+        ;마력
+        PRINTFORML 아앗..! %CALLNAME:MASTER%의 상태가...!
+        PRINTL 마력이 1 증가 하였습니다.
+        WAIT
+    REND
+ENDIF
+
+;---------------------------------------
+;@GOING_TRAINING_CAMP
+;훈련소 가기
+;---------------------------------------
+@GOING_TRAINING_CAMP
+#DIM DYNAMIC RAND_EXP
+
+;500 CP감소
+MONEY -= 500
+
+$INPUT_LOOP
+DRAWLINE
+PRINTL
+PRINTFORML  공격력:{ABL:MASTER:91}     방어력:{ABL:MASTER:92}     마력:{ABL:MASTER:93}
+;PRINTFORML  육체단련 경험치:{TRAINING_BODY_EXP}     마력단련 경험치:{TRAINING_MANA_EXP}
+PRINT  육체단련 경험치
+BAR TRAINING_BODY_EXP,10,5
+PRINTFORM ({TRAINING_BODY_EXP}/10)     
+PRINT  마력단련 경험치
+BAR TRAINING_MANA_EXP,10,5
+PRINTFORML ({TRAINING_MANA_EXP}/10)
+PRINTL
+PRINTL  어떤 훈련을 할까?.....
+PRINTL
+PRINTL  [101] 육체단련(공격력,방어력,체력)
+PRINTL  [102] 명상(마력)
+PRINTL  [0] 돌아가기
+PRINTL
+DRAWLINE
+INPUT
+CLEARLINE 1
+SELECTCASE RESULT
+    CASE 101
+        RAND_EXP = 1+(RAND:5)
+        TRAINING_BODY_EXP += RAND_EXP
+        PRINTFORML  %조사처리(CALLNAME:(MASTER),"는")% 열심히 몸을 단련했다.
+        PRINTFORMW  육체단련 경험치가 {RAND_EXP} 상승했다!
+        PRINTL
+    CASE 102
+        RAND_EXP = 1+(RAND:3)
+        TRAINING_MANA_EXP += RAND_EXP
+        PRINTFORML  %조사처리(CALLNAME:(MASTER),"는")% 열심히 명상했다.
+        PRINTFORMW  마력단련 경험치가 {RAND_EXP} 상승했다!
+        PRINTL
+    CASE 0
+        RETURN 0
+    CASEELSE
+        GOTO INPUT_LOOP
+ENDSELECT
+
+CALL FIGHT_ABL_UP
+;행동틱 감소
+FLAG:0 = 1
+
+
+

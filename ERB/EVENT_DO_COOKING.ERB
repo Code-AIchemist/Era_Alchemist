@@ -1,0 +1,72 @@
+﻿;---------------------------------------
+;음식에 수면약 타기
+;---------------------------------------
+@USE_SLEEP_POTION_ON_FOOD
+PRINTL
+PRINTFORML  『%ITEMNAME:1531%』을 음식에 뿌리시겠습니까?
+PRINT  [0] 아니오
+PRINT      
+PRINTL [1] 뿌린다
+INPUT
+SELECTCASE RESULT
+    CASE 0
+        RETURN 0
+    CASE 1
+        ITEM:1531 -= 1
+        FLAG:4 = 1
+        PRINTL
+        PRINTL  오늘 밤도 거짓된 순결을 내가 갖겠다!
+        PRINTL
+        PRINTW
+ENDSELECT
+
+;---------------------------------------
+;요리하기
+;---------------------------------------
+@DO_COOKING
+;D:0~9 요리재료 넘버
+;D:10~19 필요 요리재료 갯수
+
+$INPUT_LOOP
+
+DRAWLINEFORM %UNICODE(0x2500)%
+CALL SHOW_MY_ITEM
+DRAWLINEFORM %UNICODE(0x2500)%
+
+PRINTL
+FONTBOLD
+PRINTL       주식 
+FONTREGULAR
+PRINTFORML [201] %ITEMNAME:201%
+REPEAT COOKING_KIND-1
+    PRINTFORML [{(COUNT*3)+202}] %ITEMNAME:((COUNT*3)+202)%
+REND
+PRINTL 
+PRINTFORML    [0]그만둔다
+
+INPUT
+;CALL EVENT_MAKE_SOMETHING, 최대소지 갯수, 결과물X의 번호, '요리', 요리재료 종류
+SELECTCASE RESULT
+    CASE 0
+        ;그만둔다
+        RETURN 0
+    ;주식
+    CASE 201
+        D = 801
+        D:10 = 1
+        CALL EVENT_MAKE_SOMETHING, 1, RESULT, 6003, 1
+    CASE 202
+        D = 802
+        D:10 = 1
+        CALL EVENT_MAKE_SOMETHING, 1, RESULT, 6003, 1
+    CASE 205
+        D = 803
+        D:10 = 1
+        CALL EVENT_MAKE_SOMETHING, 1, RESULT, 6003, 1
+    CASE 208
+        D = 803,804
+        D:10 = 1,1
+        CALL EVENT_MAKE_SOMETHING, 1, RESULT, 6003, 2
+    CASEELSE
+        GOTO INPUT_LOOP
+ENDSELECT

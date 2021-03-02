@@ -1,0 +1,281 @@
+﻿;---------------------------------------
+;Config 설정
+;CF_CHANGE : CONFIG 화면 수정용
+;---------------------------------------
+@CONFIG_CHANGE
+REPEAT 100
+    CF_CHANGE:COUNT = 0
+REND
+$PRINT_LOOP
+
+DRAWLINE
+PRINT  전투화상 스킵 
+PRINTBUTTON @"[수정]",1001
+IF CF_CHANGE:0 == 1
+    PRINT - 
+    IF FLAG:25 == 1
+        CALL MENUBUTTON_2_ON_OFF, 0, 1002,"ON"
+    ELSEIF FLAG:25 == 0
+        CALL MENUBUTTON_2_ON_OFF, 1, 1002,"ON"
+    ENDIF
+    PRINT       
+    IF FLAG:25 == 1
+        CALL MENUBUTTON_2_ON_OFF, 1, 1003,"OFF"
+    ELSEIF FLAG:25 == 0
+        CALL MENUBUTTON_2_ON_OFF, 0, 1003,"OFF"
+    ENDIF
+ENDIF
+PRINTL
+;--
+PRINT  모든 네임드 캐릭터 처녀 유무
+PRINTBUTTON @"[수정]",1004
+IF CF_CHANGE:1 == 1
+    PRINT - 
+    IF FLAG:28 == 1
+        CALL MENUBUTTON_2_ON_OFF, 0, 1005,"ON"
+    ELSEIF FLAG:28 == 0
+        CALL MENUBUTTON_2_ON_OFF, 1, 1005,"ON"
+    ENDIF
+    PRINT       
+    IF FLAG:28 == 1
+        CALL MENUBUTTON_2_ON_OFF, 1, 1006,"OFF"
+    ELSEIF FLAG:28 == 0
+        CALL MENUBUTTON_2_ON_OFF, 0, 1006,"OFF"
+    ENDIF
+ENDIF
+PRINTL
+;--
+PRINTFORM  랜덤캐릭터 처녀 비율 : {FLAG:26}
+PRINTBUTTON @"[수정]",1007
+IF CF_CHANGE:2 == 1
+    PRINTL
+    WHILE 1
+        PRINT  0부터 10까지의 숫자를 입력 : 
+        INPUT
+        IF RESULT >= 0 && RESULT < 11
+            FLAG:26 = RESULT
+            CF_CHANGE:2 = 0
+            BREAK
+        ELSE
+            CLEARLINE 1
+        ENDIF
+    WEND
+ENDIF
+PRINTL
+;--
+PRINTFORM  랜덤캐릭터 A처녀 비율 : {FLAG:27}
+PRINTBUTTON @"[수정]",1008
+IF CF_CHANGE:3 == 1
+    PRINTL
+    WHILE 1
+        PRINT  0부터 10까지의 숫자를 입력 : 
+        INPUT
+        IF RESULT >= 0 && RESULT < 11
+            FLAG:27 = RESULT
+            CF_CHANGE:3 = 0
+            BREAK
+        ELSE
+            CLEARLINE 1
+        ENDIF
+    WEND
+ENDIF
+PRINTL
+;--
+
+PRINTL
+PRINTL
+PRINTL
+PRINTL [0] 돌아가기
+DRAWLINE
+
+INPUT
+CLEARLINE 1
+SELECTCASE RESULT
+    CASE 1001
+        IF CF_CHANGE:0 == 0
+            CF_CHANGE:0 = 1
+        ELSEIF CF_CHANGE:0 == 1
+            CF_CHANGE:0 = 0
+        ENDIF
+    CASE 1002
+        FLAG:25 = 1
+    CASE 1003
+        FLAG:25 = 0
+
+    CASE 1004
+        IF CF_CHANGE:1 == 0
+            CF_CHANGE:1 = 1
+        ELSEIF CF_CHANGE:1 == 1
+            CF_CHANGE:1 = 0
+        ENDIF
+    CASE 1005
+        FLAG:28 = 1
+    CASE 1006
+        FLAG:28 = 0
+
+    CASE 1007
+        CF_CHANGE:2 = 1
+    CASE 1008
+        CF_CHANGE:3 = 1
+    
+
+    CASE 0
+        RETURN 0
+ENDSELECT
+GOTO PRINT_LOOP
+
+;---------------------------------------
+;@GOING_OUT_SOMEWHERE
+;외출하기
+;CF_CHANGE : CONFIG 화면 수정용
+;---------------------------------------
+@GOING_OUT_SOMEWHERE
+#DIM DYNAMIC RESULT_A
+
+$INPUT_LOOP_A
+
+;출력
+DRAWLINE
+PRINTL
+PRINTFORML  %UNICODE(0x25B6)% 어디로 갈까?....
+CALL MENUBUTTON_ON_OFF,1,101,"시장"
+CALL MENUBUTTON_ON_OFF,0,102,"대장간(미구현)"
+CALL MENUBUTTON_ON_OFF,0,103,"길드(미구현)"
+CALL MENUBUTTON_ON_OFF,1,104,"훈련소"
+PRINTL
+PRINTL
+PRINTL [0] 돌아가기
+DRAWLINE
+PRINTL
+
+;입력
+INPUT
+RESULT_A = RESULT
+SELECTCASE RESULT_A
+    CASE 101
+    ;시장
+        CALL GOING_MARKET
+    CASE 104
+    ;훈련소 - 500CP
+        $INPUT_LOOP_B
+        PRINTFORML 입장시 500%MONEYLABEL%를 소모합니다. 입장하시겠습니까?
+        PRINTL [0] 예       [1] 아니오
+        
+        INPUT
+
+        IF RESULT == 0 && MONEY >= 500
+            CALL GOING_TRAINING_CAMP
+        ELSEIF RESULT == 1
+            GOTO INPUT_LOOP_A
+        ELSEIF MONEY < 500
+            PRINTW 손님, 입장료는 내셔야죠?
+            GOTO INPUT_LOOP_A
+        ELSE
+            PRINTW 다시 입력하세요.
+            GOTO INPUT_LOOP_B
+        ENDIF
+
+    CASE 0
+    ;나가기
+        RETURN 0
+    CASEELSE
+        GOTO INPUT_LOOP_A
+ENDSELECT
+
+;---------------------------------------
+;@Q_WHO_SHOW
+;누구 정보를 볼지 물어보는 함수
+;캐릭터 선택. 0 - 자신
+;#DIM DYNAMIC CHARA_JOB_NUM
+;캐릭터 직업번호
+;#DIM DYNAMIC FOR_NUM
+;FOR 돌리기용 변수
+;#DIM DYNAMIC Q_FALL_DOWN
+;함락 여부
+;---------------------------------------
+@Q_WHO_SHOW
+#DIM DYNAMIC CHARA_JOB_NUM
+;캐릭터 직업번호
+#DIM DYNAMIC FOR_NUM
+;FOR 돌리기용 변수
+
+PRINTL
+DRAWLINE
+PRINTL
+PRINTFORML  [0] 당신
+REPEAT CHARANUM - 1
+    ;선택번호
+    PRINTFORM  [{COUNT+1}] 
+    ;상태
+    SELECTCASE CFLAG:(COUNT+1):404
+        CASE 0
+            PRINTFORM 휴식중  
+        CASE 1
+            PRINTFORM 외출  
+        CASE 2
+            PRINTFORM 던전  
+        CASE 3
+            PRINTFORM 호출가능  
+        CASE 4
+            PRINTFORM 감금됨  
+    ENDSELECT
+    ;이름
+    PRINTFORM %CALLNAME:(COUNT+1),3% 
+    ;직업
+    CHARA_JOB_NUM = CFLAG:(COUNT+1):13
+    PRINTFORM %TALENTNAME:CHARA_JOB_NUM%  -  
+    ;용병등급
+    SELECTCASE TALENT:(COUNT+1):806
+        CASE 1
+            PRINTFORM 초보자
+        CASE 2
+            PRINTFORM F급 용병
+        CASE 3
+            PRINTFORM E급 용병
+        CASE 4
+            PRINTFORM D급 용병
+        CASE 5
+            PRINTFORM C급 용병
+        CASE 6
+            PRINTFORM B급 용병
+        CASE 7
+            PRINTFORM A급 용병
+        CASE 8
+            PRINTFORM S급 용병
+    ENDSELECT
+    PRINT   
+    CALL BASE_BAR(MASTER, "체력", 10, "초록")
+    PRINT    
+    CALL BASE_BAR(MASTER, "기력", 10, "파랑")
+    
+    ;함락여부
+    FOR FOR_NUM,13,(18+1)
+        IF TALENT:(COUNT+1):FOR_NUM == 1
+            PRINTFORML <%TALENTNAME:FOR_NUM%>
+            BREAK
+        ELSEIF FOR_NUM == 18
+            PRINTFORML <미함락>
+        ENDIF
+    NEXT
+REND
+PRINTL
+PRINTL
+PRINTL [999] 돌아가기
+WHILE 1
+    INPUT
+    IF RESULT == 999
+    ;돌아가기
+        RETURN 0
+    ELSEIF RESULT >= 0 && RESULT <= CHARANUM
+    ;캐릭터를 골랐을경우
+        CALL SHOW_TARGET_STATE, RESULT, 1
+        BREAK
+    ELSE
+    ;잘못 선택
+        PRINTW  다시 선택하여 주십시오.
+    ENDIF
+WEND
+
+
+
+

@@ -1,0 +1,367 @@
+﻿;---------------------------------------
+;아이템창 출력 함수
+;---------------------------------------
+@SHOW_MY_ITEM
+CALL SHOP_SETTING
+PRINTFORML 소지금 {MONEY} %MONEYLABEL%
+PRINTL 
+;아이템 출력문
+PRINT_ITEM
+PRINTL 
+
+;---------------------------------------
+;청소하기
+;---------------------------------------
+@CLEANING_ROOM
+#DIM TEMP_A
+
+IF BASE:MASTER:11 <= 80
+    BASE:MASTER:11 += 20
+    ;행동완료 -> 행동틱1감소
+ELSE
+    TEMP_A = MAXBASE:MASTER:11 - BASE:MASTER:11
+    BASE:MASTER:11 += TEMP_A
+ENDIF
+;깨끗함 유지시간
+FLAG:3 = 2
+
+;---------------------------------------
+;외관 장식
+;---------------------------------------
+@DECORATE_OUT
+
+CLEARLINE 11
+
+DRAWLINEFORM %UNICODE(0x2500)%
+PRINTL
+FONTBOLD
+PRINTBUTTON @"%UNICODE(0x2667)%외관_1",8001
+PRINT     
+PRINTBUTTON @"%UNICODE(0x2667)%외관_2",8002
+PRINT     
+PRINTBUTTON @"%UNICODE(0x2667)%외관_3",8003
+FONTREGULAR
+PRINTL
+PRINTL
+PRINTL [0] 돌아가기
+$INPUT_LOOP_A
+
+;입력
+INPUT
+
+CLEARLINE 3
+SELECTCASE RESULT
+    CASE 8001
+        $RESET_MENU_8001
+        CLEARLINE 1
+        FONTBOLD
+        PRINTL
+        SETCOLOR 0x808080
+        PRINTPLAINFORM %UNICODE(0x2667)%외관_1
+        RESETCOLOR
+        PRINT     
+        PRINTBUTTON @"%UNICODE(0x2667)%외관_2",8002
+        PRINT     
+        PRINTBUTTON @"%UNICODE(0x2667)%외관_3",8003
+        FONTREGULAR
+        PRINTL
+        PRINTL
+
+        IF ITEM:301 > 0
+            CALL MENUBUTTON_ON_OFF,1,301,ITEMNAME:301
+        ELSEIF ITEM:301 <= 0
+            CALL MENUBUTTON_ON_OFF,0,301,ITEMNAME:301
+        ENDIF
+
+        REPEAT 3   ;외관_1의 종류-1
+            IF ITEM:((COUNT*3)+302) > 0 && DECORATE_ITEM_TIME:1 == 0
+                CALL MENUBUTTON_ON_OFF,1,((COUNT*3)+302),ITEMNAME:((COUNT*3)+302)
+            ELSE
+                CALL MENUBUTTON_ON_OFF,0,((COUNT*3)+302),ITEMNAME:((COUNT*3)+302)
+            ENDIF
+        REND
+
+    CASE 8002
+        $RESET_MENU_8002
+        CLEARLINE 1
+        FONTBOLD
+        PRINTL
+        PRINTBUTTON @"%UNICODE(0x2667)%외관_1",8001
+        PRINT     
+        SETCOLOR 0x808080
+        PRINTPLAINFORM %UNICODE(0x2667)%외관_2
+        RESETCOLOR 
+        PRINT     
+        PRINTBUTTON @"%UNICODE(0x2667)%외관_3",8003
+        FONTREGULAR
+        PRINTL
+        PRINTL
+
+    CASE 8003
+        $RESET_MENU_8003
+        CLEARLINE 1
+        FONTBOLD
+        PRINTL
+        PRINTBUTTON @"%UNICODE(0x2667)%외관_1",8001
+        PRINT     
+        PRINTBUTTON @"%UNICODE(0x2667)%외관_2",8002
+        PRINT     
+        SETCOLOR 0x808080
+        PRINTPLAINFORM %UNICODE(0x2667)%외관_3
+        RESETCOLOR 
+        FONTREGULAR
+        PRINTL
+        PRINTL
+
+    CASE 0
+        RETURN 0
+
+    CASEELSE
+        GOTO INPUT_LOOP_A
+
+ENDSELECT
+PRINTL
+PRINTL [0] 돌아가기
+
+INPUT
+CLEARLINE 1
+
+SELECTCASE RESULT
+    CASE 0
+        CLEARLINE
+        RETURN 0
+    CASE 8001
+        CLEARLINE
+        CALL DRAW_MAINMENU
+        GOTO RESET_MENU_8001
+    CASE 8002
+        CLEARLINE
+        CALL DRAW_MAINMENU
+        GOTO RESET_MENU_8002
+    CASE 8003
+        CLEARLINE
+        CALL DRAW_MAINMENU
+        GOTO RESET_MENU_8003
+    CASEELSE
+        IF ITEM:RESULT > 0 && (RESULT > 300 && RESULT < 401)
+            IF RESULT == 301 && DECORATE_ITEM_TIME:1 == 0
+                PRINTFORMW %ITEMNAME:RESULT%이(가) 적용 되었습니다.
+                CALL EQUIP_HOTEL_EFFECT, RESULT
+                FLAG:0 = 1
+            ELSEIF (RESULT-301)%3 == 1 && DECORATE_ITEM_TIME:1 == 0
+                PRINTFORMW %ITEMNAME:RESULT%이(가) 적용 되었습니다.
+                CALL EQUIP_HOTEL_EFFECT, RESULT
+                FLAG:0 = 1
+            ELSEIF (RESULT-301)%3 == 2 && DECORATE_ITEM_TIME:2 == 0
+                PRINTFORMW %ITEMNAME:RESULT%이(가) 적용 되었습니다.
+                CALL EQUIP_HOTEL_EFFECT, RESULT
+                FLAG:0 = 1
+            ELSEIF (RESULT-301)%3 == 0 && DECORATE_ITEM_TIME:0 == 0
+                PRINTFORMW %ITEMNAME:RESULT%이(가) 적용 되었습니다.
+                CALL EQUIP_HOTEL_EFFECT, RESULT
+                FLAG:0 = 1
+            ELSE
+                PRINTW 해당 아이템은 이미 적용되었습니다
+                PRINTL
+        ENDIF
+        ELSE
+            PRINTL 아이템을 가지고 있지 않거나 옳지 않은 입력입니다
+        ENDIF 
+
+ENDSELECT
+
+
+;---------------------------------------
+;객실 장식
+;---------------------------------------
+@DECORATE_ROOM
+CLEARLINE 11
+
+DRAWLINEFORM %UNICODE(0x2500)%
+PRINTL
+FONTBOLD
+PRINTBUTTON @"%UNICODE(0x2667)%객실_1",8001
+PRINT     
+PRINTBUTTON @"%UNICODE(0x2667)%객실_2",8002
+PRINT     
+PRINTBUTTON @"%UNICODE(0x2667)%객실_3",8003
+FONTREGULAR
+PRINTL
+PRINTL
+PRINTL [0] 돌아가기
+$INPUT_LOOP_A
+
+;입력
+INPUT
+CLEARLINE 3
+SELECTCASE RESULT
+    CASE 8001
+        $RESET_MENU_8001
+        CLEARLINE 1
+        FONTBOLD
+        PRINTL
+        SETCOLOR 0x808080
+        PRINTPLAINFORM %UNICODE(0x2667)%객실_1
+        RESETCOLOR
+        PRINT     
+        PRINTBUTTON @"%UNICODE(0x2667)%객실_2",8002
+        PRINT     
+        PRINTBUTTON @"%UNICODE(0x2667)%객실_3",8003
+        FONTREGULAR
+        PRINTL
+
+        IF ITEM:401 > 0
+            CALL MENUBUTTON_ON_OFF,1,401,ITEMNAME:401
+        ELSEIF ITEM:401 <= 0
+            CALL MENUBUTTON_ON_OFF,0,401,ITEMNAME:401
+        ENDIF
+
+        REPEAT 3   ;외관_1의 종류-1
+            IF ITEM:((COUNT*3)+402) > 0 && DECORATE_ITEM_TIME:4 == 0
+                CALL MENUBUTTON_ON_OFF,1,((COUNT*3)+402),ITEMNAME:((COUNT*3)+402)
+            ELSE
+                CALL MENUBUTTON_ON_OFF,0,((COUNT*3)+402),ITEMNAME:((COUNT*3)+402)
+            ENDIF
+        REND
+
+    CASE 8002
+        $RESET_MENU_8002
+        CLEARLINE 1
+        FONTBOLD
+        PRINTL
+        PRINTBUTTON @"%UNICODE(0x2667)%객실_1",8001
+        PRINT     
+        SETCOLOR 0x808080
+        PRINTPLAINFORM %UNICODE(0x2667)%객실_2
+        RESETCOLOR 
+        PRINT     
+        PRINTBUTTON @"%UNICODE(0x2667)%객실_3",8003
+        FONTREGULAR
+        PRINTL
+
+    CASE 8003
+        $RESET_MENU_8003
+        CLEARLINE 1
+        FONTBOLD
+        PRINTL
+        PRINTBUTTON @"%UNICODE(0x2667)%객실_1",8001
+        PRINT     
+        PRINTBUTTON @"%UNICODE(0x2667)%객실_2",8002
+        PRINT     
+        SETCOLOR 0x808080
+        PRINTPLAINFORM %UNICODE(0x2667)%객실_3
+        RESETCOLOR 
+        FONTREGULAR
+        PRINTL
+
+    CASE 0
+        RETURN 0
+
+    CASEELSE
+        GOTO INPUT_LOOP_A
+
+ENDSELECT
+PRINTL
+PRINTL [0] 돌아가기
+
+INPUT
+CLEARLINE 1
+
+
+SELECTCASE RESULT
+    CASE 0
+        RETURN 0
+    CASE 8001
+        CLEARLINE
+        CALL DRAW_MAINMENU
+        GOTO RESET_MENU_8001
+    CASE 8002
+        CLEARLINE
+        CALL DRAW_MAINMENU
+        GOTO RESET_MENU_8002
+    CASE 8003
+        CLEARLINE
+        CALL DRAW_MAINMENU
+        GOTO RESET_MENU_8003
+    CASEELSE
+        IF ITEM:RESULT > 0 && (RESULT > 400 && RESULT < 501)
+            IF RESULT == 401 && DECORATE_ITEM_TIME:4 == 0
+                PRINTFORMW %ITEMNAME:RESULT%이(가) 적용 되었습니다.
+                CALL EQUIP_HOTEL_EFFECT, RESULT
+                FLAG:0 = 1
+            ELSEIF (RESULT-401)%3 == 1 && DECORATE_ITEM_TIME:4 == 0
+                PRINTFORMW %ITEMNAME:RESULT%이(가) 적용 되었습니다.
+                CALL EQUIP_HOTEL_EFFECT, RESULT
+                FLAG:0 = 1
+            ELSEIF (RESULT-401)%3 == 2 && DECORATE_ITEM_TIME:5 == 0
+                PRINTFORMW %ITEMNAME:RESULT%이(가) 적용 되었습니다.
+                CALL EQUIP_HOTEL_EFFECT, RESULT
+                FLAG:0 = 1
+            ELSEIF (RESULT-401)%3 == 0 && DECORATE_ITEM_TIME:3 == 0
+                PRINTFORMW %ITEMNAME:RESULT%이(가) 적용 되었습니다.
+                CALL EQUIP_HOTEL_EFFECT, RESULT
+                FLAG:0 = 1
+            ELSE
+                PRINTW 해당 아이템은 이미 적용되었습니다
+                PRINTL
+        ENDIF
+        ELSE
+            PRINTW 아이템을 가지고 있지 않거나 옳지 않은 입력입니다
+            PRINTL
+        ENDIF 
+
+ENDSELECT
+
+;---------------------------------------
+;@GO_OUT_CITY
+;성밖으로
+;COLLECT_ITEM_KIND,10
+;채집 가능한 아이템 종류
+;COLLECT_ITEM_PROBABILITY,10
+;아이템들 드랍률
+;#DIM ENEMY_KIND,10
+;적 종류
+;#DIM ENEMY_PROBABILITY,10
+;적 출현 확률
+;#DIM FIELD_LEVEL = FIELD_LEVEL
+;지역의 레벨, 레벨에 따른 추가 보너스
+;CALL SEARCH_NEAR, FIELD_LEVEL
+;탐색, 필드 레벨
+;---------------------------------------
+@GO_OUT_CITY
+
+;출력
+PRINTL [101] 평화의 들판(LV0, 적 출현x)
+PRINTL [102] 카하린 숲(LV5)
+PRINTL
+PRINTL [888] 정보
+PRINTL [999] 돌아가기
+
+
+;입력
+$INPUT_LOOP
+INPUT
+CLEARLINE 1
+DRAWLINE
+PRINTL
+SELECTCASE RESULT
+    CASE 101
+        ;(적 출현X)
+        COLLECT_ITEM_KIND = 1600, 1601, 1607, 2002, 2001, 0
+        COLLECT_ITEM_PROBABILITY = 40, 15, 25, 5, 5, 10
+        
+        CALL SEARCH_NEAR, 0
+    CASE 102
+        COLLECT_ITEM_KIND = 1600, 1601, 1602, 1607, 2999, 0
+        COLLECT_ITEM_PROBABILITY = 25, 25, 2, 20, 20, 8
+        ENEMY_KIND = 1901, 1911
+        ENEMY_PROBABILITY = 50, 50
+
+        CALL SEARCH_NEAR, 5
+    CASE 999
+        RETURN 0
+    CASEELSE
+        CLEARLINE 2
+        GOTO INPUT_LOOP
+ENDSELECT
+

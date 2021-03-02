@@ -1,0 +1,208 @@
+﻿;---------------------------------------
+;@EVENT_BUY_SOMETHING, LIMIT_ITEM, GOODS_NUM
+;구매 이벤트 처리 함수
+;---------------------------------------
+@EVENT_BUY_SOMETHING, LIMIT_ITEM, GOODS_NUM
+#DIM DYNAMIC CAN_BUY     ;최대 갯수
+#DIM DYNAMIC LIMIT_ITEM     ;ARG:0 = 해당 상품의 최대 구입 가능 수
+#DIM DYNAMIC GOODS_NUM      ;ARG:1 = 구입할 ITEM번호
+
+;비교할 값 두개 구하기
+IF MONEY < ITEMPRICE:GOODS_NUM
+        ARG:11 = 0
+        ARG:12 = 0
+    ELSE
+    ;ARG:11 = 지금 있는 돈으로 살 수 있는 양
+    ARG:11 = MONEY/ITEMPRICE:GOODS_NUM
+    ;ARG:12 = {LIMIT_ITEM}개를 넘지 않을 정도로 살 수 있는 양
+    ARG:12 = LIMIT_ITEM - ITEM:GOODS_NUM
+ENDIF
+
+;최소량 비교후 대입
+CALL COMPARE_MIN_AB, ARG:11, ARG:12
+CAN_BUY = RESULT
+
+$WRONG_ANSWER
+CLEARLINE 1 ;입력한값 안보이게하기.
+DRAWLINEFORM %UNICODE(0x2500)%
+
+FONTBOLD
+PRINTFORM   %ITEMNAME:GOODS_NUM%({ITEMPRICE:GOODS_NUM}%MONEYLABEL%)을 
+FONTREGULAR
+SIF CAN_BUY > 2
+    PRINTFORM 몇 개 
+PRINTFORML 구매하시겠습니까?({CAN_BUY}개)
+PRINTL
+PRINTL
+PRINTFORML   [0] 그만둔다
+IF CAN_BUY == 1
+    PRINTFORML   [1] 구매한다
+ELSEIF CAN_BUY != 0
+    PRINTL   [99] 할 수 있는 만큼
+ENDIF
+
+;INPUT문!!
+INPUT
+IF RESULT == 0
+    RETURN 0
+ELSEIF (RESULT > CAN_BUY) && (RESULT != 99)
+    PRINTL   다시 입력하여 주십시오
+    GOTO WRONG_ANSWER
+ELSEIF RESULT > 0 && CAN_BUY == 0 
+    CLEARLINE 8
+    IF ITEM:GOODS_NUM == LIMIT_ITEM
+        PRINTL 최대 소지 개수를 초과할 수 없습니다
+        PRINTL
+    ELSEIF CAN_BUY == 0
+        PRINTL 금액이 부족합니다
+        PRINTL
+    ENDIF
+    GOTO WRONG_ANSWER
+ELSE
+    ;입력값이 구매할 갯수 보다 작을경우 구매할 갯수로 대입
+    SIF CAN_BUY > RESULT
+        CAN_BUY = RESULT
+    ;구매
+    ITEM:GOODS_NUM += CAN_BUY
+    MONEY -= (CAN_BUY * ITEMPRICE:GOODS_NUM)
+
+    ;행동틱
+    FLAG:0 = 1
+    CLEARLINE 1
+    PRINTL
+    PRINTFORMW   {CAN_BUY}개 구매완료
+    PRINTL
+    PRINTL 
+    RETURN 0
+ENDIF
+
+DRAWLINEFORM %UNICODE(0x2550)%
+PRINTL
+PRINTL
+
+;---------------------------------------
+;둘 중 최소값 구하기
+;---------------------------------------
+@COMPARE_MIN_AB, COMPARE_AB:0, COMPARE_AB:1
+#DIM DYNAMIC COMPARE_AB, 3
+
+IF COMPARE_AB:0 > COMPARE_AB:1
+    COMPARE_AB:2 = COMPARE_AB:1
+ELSE
+    COMPARE_AB:2 = COMPARE_AB:0
+ENDIF
+
+RETURN COMPARE_AB:2
+
+;---------------------------------------
+;최대 소지가능 개수 구하는 함수
+;---------------------------------------
+@MAX_CARRY_ITEM, ARG:0, ARG:1, ARG:2
+#DIM DYNAMIC A_MAT_ARRAY1, 10
+#DIM DYNAMIC MAX_CARRY, 3
+;A_MAT_ARRAY1  <-  D:0~10 = 재료 아이템들의 번호. / 대입해서 재료들의 갯수 알아냄.
+;LIMIT_ITEM = ARG:1 = 최대 소지 갯수
+;GOODS_NUM = ARG:2 = 상품의 번호
+;A_MAT_KIND = ARG:0 = 재료 아이템들 종류
+
+;랜덤 최소, 최대 계산
+REPEAT (ARG:0)
+    A_MAT_ARRAY1:COUNT = ITEM:(D:COUNT)
+    IF COUNT == 0
+        MAX_CARRY:1 = (A_MAT_ARRAY1:COUNT/D:(COUNT+10))
+    ELSE
+        SIF MAX_CARRY:1 > (A_MAT_ARRAY1:COUNT/D:(COUNT+10))
+            MAX_CARRY:1 = (A_MAT_ARRAY1:COUNT/D:(COUNT+10))
+    ENDIF
+REND
+;{LIMIT_HAVE_ITEM}개를 넘지 않을 정도로 만들 수 있는 양
+MAX_CARRY:0 = (ARG:1) - ITEM:(ARG:2)
+
+CALL COMPARE_MIN_AB, MAX_CARRY:0, MAX_CARRY:1
+MAX_CARRY:2 = RESULT
+
+RETURN MAX_CARRY:2
+
+
+;---------------------------------------
+;제작,요리 이벤트처리 함수
+;---------------------------------------
+@EVENT_MAKE_SOMETHING, LIMIT_ITEM, GOODS_NUM, COMMAND_NUM, A_MAT_COUNT
+#DIM DYNAMIC CAN_MAKE       ;최대 갯수 찾기용 변수
+#DIM DYNAMIC LIMIT_ITEM     ;ARG:2 = 해당 상품의 최대 구입(소지) 수
+#DIM DYNAMIC GOODS_NUM    ;ARG:3 = 결과물X의 ITEM번호
+;6001,제작  /  6003,요리
+#DIM COMMAND_NUM  ;ARG:4 = 명령(제작,요리,구입)
+#DIM A_MAT_COUNT    ;ARG:5 = 재료들의 종류
+
+;-----------------제작
+
+CALL MAX_CARRY_ITEM, A_MAT_COUNT, LIMIT_ITEM
+CAN_MAKE = RESULT
+
+$WRONG_ANSWER
+CLEARLINE 1 ;입력한값 안보이게하기.
+DRAWLINEFORM %UNICODE(0x2500)%
+
+FONTBOLD
+PRINTFORM   %ITEMNAME:(GOODS_NUM)%을 
+FONTREGULAR
+SIF CAN_MAKE > 2
+    PRINTFORM 몇 개 
+PRINTFORML %STR:COMMAND_NUM%하시겠습니까?({CAN_MAKE}개)
+PRINT   필요한 재료 : 
+REPEAT A_MAT_COUNT
+    PRINTFORM %ITEMNAME:(D:COUNT)%({D:(COUNT+10)}개)  
+REND
+
+PRINTL
+PRINTL
+PRINTFORML   [0] 그만둔다
+IF CAN_MAKE == 1 || CAN_MAKE == 0
+    PRINTFORML   [1] %STR:COMMAND_NUM%한다
+ELSE
+    PRINTL   [99] 할 수 있는 만큼
+ENDIF
+
+;INPUT문!!
+INPUT
+IF RESULT == 0
+    RETURN 0
+ELSEIF (RESULT > CAN_MAKE) && (RESULT != 99) && CAN_MAKE != 0 
+    PRINTL   다시 입력하여 주십시오
+    GOTO WRONG_ANSWER
+ELSEIF RESULT > 0 && CAN_MAKE == 0 
+    CLEARLINE 8
+    PRINTL   제작에 필요한 재료가 부족합니다
+    PRINTL
+    GOTO WRONG_ANSWER
+ELSE
+    ;입력값이 구매할 갯수 보다 작을경우 구매할 갯수로 대입
+    SIF CAN_MAKE > RESULT
+        CAN_MAKE = RESULT
+    ;상품 생산
+    ITEM:GOODS_NUM += CAN_MAKE
+    ;재료 소모
+    REPEAT A_MAT_COUNT
+        ITEM:(D:COUNT) -= D:(COUNT+10) * CAN_MAKE
+    REND
+    ;행동틱
+    FLAG:0 = 1
+    ;요리 명령일 경우
+    IF COMMAND_NUM == 6003
+        CALL EQUIP_HOTEL_EFFECT, GOODS_NUM
+        FLAG:1 = 1
+    ENDIF
+    PRINTL
+    PRINTFORMW   {CAN_MAKE}개 %STR:COMMAND_NUM%완료
+    PRINTL 
+    RETURN 0
+ENDIF
+
+DRAWLINEFORM %UNICODE(0x2550)%
+PRINTL
+PRINTL
+
+
+
+

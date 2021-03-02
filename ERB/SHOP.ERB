@@ -1,0 +1,275 @@
+﻿;---------------------------------------
+;프롤로그
+;---------------------------------------
+@EVENTSHOP
+;LOADDATA 후 실행X
+CLEARLINE 100
+
+;---------------------------------------
+;스타트 화면
+;@SHOW_SHOP
+;메인화면 불러오기
+;행동수 A-최대:3 / B-투숙객 / C-식사
+;TIME = 0새벽/1아침/2점심/3낮/4저녘/5밤/6늦은밤
+;---------------------------------------
+@SHOW_SHOP
+CALL DRAW_MAINMENU
+CALL PRINT_MENUBUTTON
+
+;---------------------------------------
+;INPUT-RESULT 값 100이상일 경우.
+;@USERSHOP
+;행동수 A-최대:3 / B-투숙객 / C-식사
+;TIME = 0새벽/1아침/2점심/3낮/4저녘/5밤/6늦은밤
+;---------------------------------------
+@USERSHOP
+CALL EVENT_MENU_RESULT, RESULT
+SIF GAME_OVER_FLAG == 1
+    CALL PLAYER_DEAD_EVENT
+SIF FLAG:0 != 0
+    CALL ACT_TICK_AGO
+
+
+;---------------------------------------
+;각 버튼들 이벤트
+;---------------------------------------
+@EVENT_MENU_RESULT, MENU_NUM
+#DIM DYNAMIC TEMP_1
+;TEMP_1 = 잡일 전용 변수
+#DIM DYNAMIC MENU_NUM
+;메뉴 입력값 (@SHOW_SHOP과 @USERSHOP에서 입력된 RESULT값)
+; A = 행동틱
+SELECTCASE MENU_NUM
+    CASE 100
+    ;조교한다  TIME >= 5 
+    CASE 101
+    ;연금술
+        IF A > 0
+            CALL EVENT_ALCHEMY
+        ELSE
+            PRINTW 행동력이 부족합니다
+            PRINTL
+        ENDIF
+    CASE 102
+    ;요리한다 + 수면제타기 가능  TIME < 5
+        IF A > 0 && TIME < 5
+            CALL DO_COOKING
+            ;수면약은 저녘에만
+            SIF TIME > 2 && ITEM:1531 > 0
+                CALL USE_SLEEP_POTION_ON_FOOD
+        ELSEIF TIME >= 5
+            PRINTW 이 시간엔 실행할 수 없습니다
+            PRINTL
+        ELSE
+            PRINTW 행동력이 부족합니다
+            PRINTL
+        ENDIF
+    CASE 151
+    ;객실장식  TIME < 5
+        IF A > 0 && TIME < 5
+            CALL DECORATE_ROOM
+        ELSEIF TIME >= 5
+            PRINTW 이 시간엔 실행할 수 없습니다
+            PRINTL
+        ELSE
+            PRINTW 행동력이 부족합니다
+            PRINTL
+        ENDIF
+    CASE 152
+    ;외관장식  TIME < 5
+        IF A > 0 && TIME < 5
+            CALL DECORATE_OUT
+        ELSEIF TIME >= 5
+            PRINTW 이 시간엔 실행할 수 없습니다
+            PRINTL
+        ELSE
+            PRINTW 행동력이 부족합니다
+            PRINTL
+        ENDIF
+    CASE 201
+    ;상점
+        IF A > 0
+            CALL PRINT_SMALL_SHOP
+        ELSE
+            PRINTW 행동력이 부족합니다
+            PRINTL
+        ENDIF
+    
+    CASE 211
+    ;외출  TIME < 5
+        IF A > 0 && TIME < 5
+            CALL GOING_OUT_SOMEWHERE
+        ELSEIF TIME >= 5
+            PRINTW 이 시간엔 실행할 수 없습니다
+            PRINTL
+        ELSE
+            PRINTW 행동력이 부족합니다
+            PRINTL
+        ENDIF
+    CASE 215
+    ;성밖으로  TIME < 4
+        IF A > 1 && TIME < 4
+            CALL GO_OUT_CITY
+        ELSEIF TIME >= 4
+            PRINTW 이 시간엔 실행할 수 없습니다
+            PRINTL
+        ELSE
+            PRINTW 행동력이 부족합니다
+            PRINTL
+        ENDIF
+
+    CASE 216
+    ;던전으로  TIME < 4
+
+    CASE 301
+    ;청소하기
+        IF A > 0
+            CALL CLEANING_ROOM
+            ;행동틱1
+            FLAG:0 = 1
+            CLEARLINE 1
+            CALL BUFF_ON,11,0
+            CALL BUFF_ON,12,0
+            PRINTW 깨끗하게 청소하였습니다
+        ELSE
+            PRINTW 행동력이 부족합니다
+            PRINTL
+        ENDIF
+
+    CASE 302
+    ;홍보하기  (TIME > 1 && TIME < 5)
+        IF (TIME > 1 && TIME < 5) && A > 0
+            ;소문 버프
+            CALL BUFF_ON,14,1
+            ;행동력
+            FLAG:0 = 1
+            CLEARLINE 1
+            PRINTFORMW 밖으로 나가 %STR:6010%여관을 홍보하였습니다
+        ELSEIF A <= 0
+            PRINTW 행동력이 부족합니다
+            PRINTL
+        ELSE
+            PRINTW 이 시간엔 실행할 수 없습니다
+            PRINTL
+        ENDIF
+
+    CASE 303
+    ;말동무하기  (TIME > 1 && TIME < 5)
+        IF (TIME > 1 && TIME < 5) && A > 0
+            ;요리, 소문 버프
+            CALL BUFF_ON,13,0
+            CALL BUFF_ON,14,0
+            ;행동력
+            FLAG:0 = 1
+            CLEARLINE 1
+            PRINTW 손님의 말동무를 해주며 잡담하였습니다
+        ELSEIF A <= 0
+            PRINTW 행동력이 부족합니다
+            PRINTL
+        ELSE
+            PRINTW 이 시간엔 실행할 수 없습니다
+            PRINTL
+        ENDIF
+    
+    CASE 401
+    ;휴식하기  TIME < 5
+        IF TIME < 5 && A > 0
+            FLAG:2 += 1
+            FLAG:0 = 1
+            ;체력회복
+            TEMP_1 = (MAXBASE:MASTER:0)/10
+            IF MAXBASE:MASTER:0 < (BASE:MASTER:0) + TEMP_1
+                BASE:MASTER:0 = MAXBASE:MASTER:0
+            ELSE
+                BASE:MASTER:0 += TEMP_1
+            ENDIF
+            ;기력회복
+            TEMP_1 = (MAXBASE:MASTER:1)/10
+            IF MAXBASE:MASTER:1 < (BASE:MASTER:1) + TEMP_1
+                BASE:MASTER:1 = MAXBASE:MASTER:1
+            ELSE
+                BASE:MASTER:1 += TEMP_1
+            ENDIF
+            CLEARLINE 1
+            PRINTW 잡지를 보며 충분히 쉬었습니다
+        ELSEIF A <= 0
+            PRINTW 행동력이 부족합니다
+            PRINTL
+        ELSE
+            PRINTW 이 시간엔 실행할 수 없습니다
+            PRINTL
+        ENDIF
+
+    CASE 402
+    ;일찍자기  TIME == 5
+        IF TIME == 5 && A > 0
+            FLAG:2 += 2
+            FLAG:0 = 1
+            CLEARLINE 1
+            PRINTW 오늘은 일찍자러 갑니다
+            ;밤 숙박비 수금타임
+            CALL CHECK_PLZ,0
+            TIME = 6
+            A = 1
+            ;버프도 끝
+            REPEAT 4
+                BUFF_TIME:COUNT = 1
+            REND
+        ELSEIF A <= 0
+            PRINTW 행동력이 부족합니다
+            PRINTL
+        ELSE
+            PRINTW 이 시간엔 실행할 수 없습니다
+            PRINTL
+        ENDIF
+
+    CASE 403
+    ;잠자기  TIME == 6
+        IF TIME == 6 && A > 0
+            FLAG:2 += 2
+            FLAG:0 = 1
+            CLEARLINE 1
+            PRINTW 이만 자러 갑니다
+            A = 1
+            ;버프도 끝
+            REPEAT 4
+                BUFF_TIME:COUNT = 1
+            REND
+        ELSEIF A <= 0
+            PRINTW 행동력이 부족합니다
+            PRINTL
+        ELSE
+            PRINTW 이 시간엔 실행할 수 없습니다
+            PRINTL
+        ENDIF
+
+    CASE 450
+    ;아이템창
+        CALL SHOW_MY_ITEM
+        WAIT
+
+    CASE 666
+    ;정보보기
+        CALL Q_WHO_SHOW
+
+    CASE 777
+    ;Config
+        CALL CONFIG_CHANGE
+
+    CASE 888
+    ;세이브
+    CLEARLINE 100
+    SAVEGAME
+
+    CASE 999
+    ;로드
+    CLEARLINE 100
+    LOADGAME
+
+    CASEELSE
+        RETURN 0
+ENDSELECT
+
+
+
+

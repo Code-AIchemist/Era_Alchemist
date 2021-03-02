@@ -1,0 +1,13 @@
+﻿;---------------------------------------
+;@GIVE_RAND_NUM, RAND_MIN, RAND_MAX
+;주어진 최소 초과, 최대 이하에서 랜덤 값 구하기.
+;---------------------------------------
+@GIVE_RAND_NUM, RAND_MIN, RAND_MAX
+#DIM DYNAMIC RAND_MIN
+#DIM DYNAMIC RAND_MAX
+#DIM DYNAMIC TAKE_RAND
+
+WHILE !(RAND_MIN < TAKE_RAND && TAKE_RAND <= RAND_MAX)
+    TAKE_RAND = (RAND:RAND_MAX)+1
+WEND
+RETURN TAKE_RAND

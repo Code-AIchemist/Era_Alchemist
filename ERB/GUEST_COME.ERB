@@ -1,0 +1,97 @@
+﻿;---------------------------------------
+;손님 여부 판별 - 올지말지, 어떤손님인지, 계산이 필요한지
+;---------------------------------------
+@JUDGE_GUEST
+;A - 행동틱, B - 투숙객, C - 식사
+;TIME = 0새벽/1아침/2점심/3낮/4저녘/5밤/6늦은밤
+
+;손님 받기
+SIF (TIME >= 2 && TIME < 6) && A == 0  ;점심~밤, 타임이 끝날때 마다.
+    CALL HOTEL_GUEST_CALL
+SIF TIME == 2 || TIME == 4  ;점심, 저녘
+    CALL GET_MEAL_GUEST_CALL
+
+
+
+;---------------------------------------
+;투숙할 손님 모집
+;---------------------------------------
+@HOTEL_GUEST_CALL
+#DIM COMPARE_AB, 2
+#DIM DYNAMIC CHECK_IN_PEOPLE
+COMPARE_AB = 1 + (((DAY/10)+1) * 소문LV + (외관LV * 객실LV / (101 - BASE:MASTER:11))) / 10
+COMPARE_AB:1 = 1 + ((DAY/20)+1) * (외관LV + 객실LV + 소문LV) / 20
+IF COMPARE_AB:1 >= COMPARE_AB:0
+    CHECK_IN_PEOPLE = COMPARE_AB:1
+ELSE
+    WHILE COMPARE_AB:1 > CHECK_IN_PEOPLE
+        CHECK_IN_PEOPLE = RAND:COMPARE_AB
+    WEND
+ENDIF
+
+B += CHECK_IN_PEOPLE
+PRINTFORMW {CHECK_IN_PEOPLE}명의 사람이 체크인 하였습니다.
+PRINTL 
+;밤일 경우, 숙박-돈계산 함수실행
+SIF TIME == 5
+    CALL CHECK_PLZ, 0
+
+;---------------------------------------
+;식사할 손님 모집
+;---------------------------------------
+@GET_MEAL_GUEST_CALL
+#DIM COMPARE_AB, 2
+#DIM DYNAMIC EATING_PEOPLE
+IF FLAG:1 == 0
+    PRINTFORMW %UNICODE(0X203B)%준비된 음식이 없어, 식사를 제공 할 수 없었습니다.
+    PRINTL 
+ELSE
+    COMPARE_AB:0 = 1 + ((((DAY/5)+1) * 요리LV) + (외관LV * 객실LV / (101 - BASE:MASTER:11)) + 2*소문LV) / 10
+    COMPARE_AB:1 = 1 + ((DAY/10)+1) * (외관LV + 객실LV + (2*요리LV) + 소문LV) / 20
+    IF COMPARE_AB:1 >= COMPARE_AB:0
+        EATING_PEOPLE = COMPARE_AB:1
+    ELSE
+        WHILE COMPARE_AB:1 > EATING_PEOPLE
+            EATING_PEOPLE = RAND:COMPARE_AB
+        WEND
+    ENDIF
+    C += EATING_PEOPLE
+    PRINTFORMW {EATING_PEOPLE}명의 사람이 식사 하였습니다.
+    PRINTL 
+ENDIF
+;행동틱 0일경우, 식사-돈계산 함수실행
+SIF A == 0
+    CALL CHECK_PLZ, 1
+
+;---------------------------------------
+;돈 계산하기.
+;---------------------------------------
+@CHECK_PLZ, ARG
+;TIME = 0새벽/1아침/2점심/3낮/4저녘/5밤/6늦은밤
+IF ARG == 0 && TIME == 5
+;숙박 돈계산
+    MONEY:1 = B * 100 * (외관LV + 2*객실LV + 2/소문LV)
+    MONEY += MONEY:1
+    PRINTFORML 숙박 매출 : {MONEY:1}
+    ;숙박 손님 초기화
+    B = 0
+
+ELSEIF ARG == 1 && (TIME == 2 || TIME == 4)
+;식사 돈계산
+    MONEY:1 = C * 20 * (외관LV + 2*요리LV + 2/소문LV)
+    MONEY += MONEY:1
+    PRINTFORML 식당 매출 : {MONEY:1}
+    ;식사 손님 초기화
+    C = 0
+    ;요리 없음.
+    FLAG:1 = 0
+    ;요리 아이템 초기화
+    REPEAT 3
+        CALL UNEQUIP_HOTEL_EFFECT,(COUNT+9)
+    REND
+
+ENDIF
+PRINTW 
+
+
+

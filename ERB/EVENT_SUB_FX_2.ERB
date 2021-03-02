@@ -1,0 +1,122 @@
+﻿;---------------------------------------
+;시간이 지남에 따라 더러워짐
+;---------------------------------------
+@GET_DIRTY
+IF BASE:MASTER:11 > 0
+    BASE:MASTER:11 -= 5
+    SIF BASE:MASTER:11 < 0
+        BASE:MASTER:11 = 0
+ENDIF
+
+;---------------------------------------
+;여관버프 ON
+;---------------------------------------
+@BUFF_ON, BUFF_KIND, BONUS_LV
+;외관LV, 객실LV, 요리LV, 소문LV
+#DIM DYNAMIC BUFF_KIND
+;버프ON할 종류. 11~14
+#DIM DYNAMIC BONUS_LV
+;BONUS_LV = 보통은 0, 1 = 2씩 올려주는 특수한 행동일 경우
+
+L = (DAY/10)+1+BONUS_LV
+
+BUFF_TIME:(BUFF_KIND-11) = 5
+SIF FLAG:BUFF_KIND == 0
+    BUFF_LV:(BUFF_KIND-11) = L
+
+FLAG:BUFF_KIND = 1
+
+;---------------------------------------
+;여관버프 OFF
+;---------------------------------------
+@BUFF_OFF, ARG
+FLAG:(ARG) = 0
+;외관LV, 객실LV, 요리LV, 소문LV
+BUFF_LV:(ARG-11) = 0
+
+;---------------------------------------
+;버프타임 감소
+;---------------------------------------
+@BUFF_TIME_DOWN, BT_KIND
+#DIM DYNAMIC BT_KIND ;= ARG:0 = DOWN할 종류
+;#DIM DYNAMIC BT_VALUE ;= ARG:1 = DOWN할 수치
+
+;감소
+IF (FLAG:BT_KIND == 1) && (BUFF_TIME:COUNT > 0)
+    BUFF_TIME:(BT_KIND-11) -= 1
+    SIF BUFF_TIME:COUNT == 0
+        CALL BUFF_OFF,BT_KIND
+ENDIF
+
+
+
+;---------------------------------------
+;버프체크
+;---------------------------------------
+@CHECK_BUFF
+
+REPEAT 4
+;외관LV, 객실LV, 요리LV, 소문LV
+    SIF (FLAG:(11+COUNT)) == 1
+        CALL BUFF_TIME_DOWN,(11+COUNT)
+REND
+
+
+;---------------------------------------
+;메뉴버튼 활성/비활성
+;---------------------------------------
+@MENUBUTTON_ON_OFF, ON_OFF, BUTTON_NUM, BUTTON_NAME
+#DIM DYNAMIC ON_OFF ;ON = 1, OFF = 0
+#DIM DYNAMIC BUTTON_NUM
+#DIMS DYNAMIC BUTTON_NAME
+
+IF ON_OFF == 1
+    PRINTFORML  [{BUTTON_NUM}] %BUTTON_NAME%
+ELSEIF ON_OFF == 0
+    SETCOLOR 0x808080
+    PRINTPLAINFORM  [{BUTTON_NUM}] %BUTTON_NAME%
+    PRINTL
+    RESETCOLOR
+ENDIF
+
+;---------------------------------------
+;메뉴버튼2 활성/비활성
+;---------------------------------------
+@MENUBUTTON_2_ON_OFF, ON_OFF, BUTTON_NUM, BUTTON_NAME
+#DIM DYNAMIC ON_OFF ;ON = 1, OFF = 0
+#DIM DYNAMIC BUTTON_NUM
+#DIMS DYNAMIC BUTTON_NAME
+
+IF ON_OFF == 1
+    PRINTBUTTON  @"[%BUTTON_NAME%]",BUTTON_NUM
+ELSEIF ON_OFF == 0
+    SETCOLOR 0x808080
+    PRINTPLAINFORM  [%BUTTON_NAME%]
+    RESETCOLOR
+ENDIF
+
+
+;---------------------------------------
+;게임오버 타이틀
+;---------------------------------------
+@PLAYER_DEAD_EVENT
+
+PRINTL
+PRINTL
+PRINTL
+PRINTL **********************사망하셨습니다**********************
+PRINTL
+PRINTL
+PRINTL
+PRINTW
+;RESETDATA
+;CLEARLINE LINECOUNT
+BEGIN TITLE
+
+
+
+
+
+
+
+

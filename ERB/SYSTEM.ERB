@@ -1,0 +1,308 @@
+﻿@EVENTFIRST
+
+TARGET = -1
+
+CALL SHOP_SETTING
+CALL START_SETTING
+CALL PRINT_TUTORIAL
+
+
+BEGIN SHOP
+
+;---------------------------------------
+;스타팅 초기화
+;---------------------------------------
+@START_SETTING
+$INPUT_LOOP
+PRINTL 초기 소지 금액은?
+PRINTFORML [0]0%MONEYLABEL%     [1]5000%MONEYLABEL%     [2]50000%MONEYLABEL%
+INPUT
+IF RESULT == 0
+    MONEY = 0
+ELSEIF RESULT == 1
+    MONEY = 5000
+ELSEIF RESULT == 2
+    MONEY = 50000
+ELSE
+    GOTO INPUT_LOOP
+ENDIF
+
+;초기화
+DAY = 1  ;날짜
+;시간 (0=새벽 1=아침 2=점심 3=낮 4=저녘 5=밤 6=늦은밤)
+TIME = 0
+;주인공 캐릭터 추가
+ADDCHARA 0
+;위험도 초기화
+BASE:MASTER:10 = 0
+;청결도 초기화
+BASE:MASTER:11 = 100
+;행동수 최대:3 / 투숙객 / 식사
+A = 3
+B = 0
+C = 0
+;-------------
+ITEM:1600 = 6
+ITEM:1601 = 4
+ITEM:1607 = 5
+ITEM:801 = 4
+외관LV = 1
+객실LV = 1
+요리LV = 1
+소문LV = 1
+여관LV = 1
+
+FLAG:25 = 0
+;전투씬 스킵여부, (0=스킵X, 1=스킵O)
+FLAG:26 = 5
+;랜덤캐릭터 처녀 비율
+FLAG:27 = 5
+;랜덤캐릭터 A처녀 비율
+FLAG:28 = 0
+;모든 네임드 캐릭터 처녀 유무, (0=초기설정따라, 1=모두처녀)
+
+;확인용 치트
+;DAY = 50
+;TIME = 2
+;BASE:MASTER:11 = 50
+;ITEM:600 = 60
+;ITEM:601 = 40
+;ITEM:607 = 50
+;외관LV = 10
+;객실LV = 10
+;요리LV = 10
+;소문LV = 10
+;여관LV = 10
+
+KIND_OF_TRAIN_ITEM = 12  ;조교 기구 종류
+KIND_OF_TRAIN_CONSUMPTION_ITEM = 7  ;조교 소비템 종류
+KIND_OF_SKILL_ITEM = 1  ;기능 아이템 종류
+KIND_OF_OUT_DECO_ITEM = 4  ;외관 아이템 종류
+KIND_OF_ROOM_ITEM = 4  ;객실 아이템 종류
+KIND_OF_RUMOR_ITEM = 4  ;소문 아이템 종류
+KIND_OF_COOK_MAT_ITEM = 4  ;요리재료 아이템 종류
+COOKING_KIND = 4  ;요리종류
+
+CALL CANSHOW_TELENT_NUM_INPUT
+;정보를 볼때 표시되는 TALENT번호들 대입하는 함수.
+
+;---------------------------------------
+;상점 아이템 초기화
+;---------------------------------------
+@SHOP_SETTING
+#DIM SELLING_ITEM
+
+SELLING_ITEM = 12  ;조교 기구 종류
+REPEAT SELLING_ITEM
+    SIF ITEM:COUNT == 0
+        ITEMSALES:(COUNT+1) = 1  ;조교 기구 번호
+REND
+
+SELLING_ITEM = 7  ;조교 소비템 종류
+REPEAT SELLING_ITEM
+        ITEMSALES:(COUNT+20) = 1  ;조교 소비템 번호
+REND
+
+SELLING_ITEM = 1  ;기능 아이템 종류
+REPEAT SELLING_ITEM
+    SIF ITEM:(COUNT+171) == 0
+        ITEMSALES:(COUNT+171) = 1  ;기능 아이템 번호
+REND
+
+SELLING_ITEM = 100  ;외관 아이템 종류
+REPEAT SELLING_ITEM
+    SIF ITEM:(COUNT+301) == 0
+        ITEMSALES:(COUNT+301) = 1  ;외관 아이템 번호
+REND
+
+SELLING_ITEM = 100  ;객실 아이템 종류
+REPEAT SELLING_ITEM
+    SIF ITEM:(COUNT+401) == 0
+        ITEMSALES:(COUNT+401) = 1  ;객실 아이템 번호
+REND
+
+;SELLING_ITEM = 100  ;소문 아이템 종류
+;REPEAT SELLING_ITEM
+;    SIF ITEM:(COUNT+501) == 0
+;        ITEMSALES:(COUNT+501) = 1  ;소문 아이템 번호
+;REND
+
+SELLING_ITEM = 4  ;요리재료 아이템 종류
+REPEAT SELLING_ITEM
+    SIF ITEM:(COUNT+801) == 0
+        ITEMSALES:(COUNT+801) = 1  ;요리 아이템 번호
+REND
+
+;---------------------------------------
+;@CANSHOW_TELENT_NUM_INPUT
+;정보를 볼때 표시되는 TALENT번호들 대입하는 함수.
+;TALENT.csv 수정할 때 반드시 확인해야할 함수.
+
+;#DIM SAVEDATA A_SHOW_TALENT_NUM,3,100
+;성격
+;#DIM SAVEDATA B_SHOW_TALENT_NUM,3,100
+;체질
+;#DIM SAVEDATA C_SHOW_TALENT_NUM,3,100
+;특수
+;0-여기서부터, 1-여기까지, 2-사이의 갯수.
+;#DIM SAVEDATA TALENT_ARRAY_COUNT,3
+;배열별 TALENT의 0이 아닌 값을 세어주는 변수
+
+;#DIM SAVEDATA SHOW_EXP_NUM,3,200
+;정보 볼때 표시되는 EXP번호들(0=여기서부터 1=여기까지 2=갯수)
+;#DIM SAVEDATA SHOW_TRAIN_ABL_NUM,3,100
+;정보 볼때 표시되는 전투 능력치를 제외한 ABL번호들(0=여기서부터 1=여기까지 2=갯수)
+
+;---------------------------------------
+@CANSHOW_TELENT_NUM_INPUT
+
+;-----성격-----
+;대사관련(첫타) 236~241
+;21-25 / 51-58 / 61-64 / 91-93 / 104-108 / 111-118 / 160-162
+;196-199 / 221-222 / 224-225
+
+A_SHOW_TALENT_NUM:0:0 = 236,21,51,61,91,104,111,160,196,221,224
+;여기서부터
+
+A_SHOW_TALENT_NUM:1:0 = 241,25,58,64,93,108,118,162,199,222,225
+;여기까지
+
+REPEAT 100
+    IF A_SHOW_TALENT_NUM:1:COUNT != 0
+        TALENT_ARRAY_COUNT:0 += 1
+    ELSE
+        BREAK
+    ENDIF
+REND
+;배열에 0이 아닌 값을 세어주는 코드.
+
+REPEAT TALENT_ARRAY_COUNT:0
+    A_SHOW_TALENT_NUM:2:COUNT = 1 + A_SHOW_TALENT_NUM:1:COUNT - A_SHOW_TALENT_NUM:0:COUNT
+REND
+
+;-----체질-----
+;31-32 / 71-74 / 81-83 / 101-103 / 121-123 / 131-141 / 171-176
+;201-205 / 223 / 226 / 251-254
+
+B_SHOW_TALENT_NUM:0:0 = 31,71,81,101,121,131,171,201,223,226,251
+;여기서부터
+
+B_SHOW_TALENT_NUM:1:0 = 32,74,83,103,123,141,176,205,223,226,254
+;여기까지
+
+REPEAT 100
+    IF B_SHOW_TALENT_NUM:1:COUNT != 0
+        TALENT_ARRAY_COUNT:1 += 1
+    ELSE
+        BREAK
+    ENDIF
+REND
+;배열에 0이 아닌 값을 세어주는 코드.
+
+REPEAT TALENT_ARRAY_COUNT:1
+    B_SHOW_TALENT_NUM:2:COUNT = 1 + B_SHOW_TALENT_NUM:1:COUNT - B_SHOW_TALENT_NUM:0:COUNT
+REND
+
+;-----특수-----
+;151-156 / 218-220 / 261-264 / 271-273
+
+C_SHOW_TALENT_NUM:0:0 = 151,218,261,271
+;여기서부터
+
+C_SHOW_TALENT_NUM:1:0 = 156,220,264,273
+;여기까지
+
+REPEAT 100
+    IF C_SHOW_TALENT_NUM:1:COUNT != 0
+        TALENT_ARRAY_COUNT:2 += 1
+    ELSE
+        BREAK
+    ENDIF
+REND
+;배열에 0이 아닌 값을 세어주는 코드.
+
+REPEAT TALENT_ARRAY_COUNT:2
+    C_SHOW_TALENT_NUM:2:COUNT = 1 + C_SHOW_TALENT_NUM:1:COUNT - C_SHOW_TALENT_NUM:0:COUNT
+REND
+
+;---------------------------------------
+;행동함
+;---------------------------------------
+@ACT_TICK_AGO
+;A = 행동 틱. 기본3 / 밤잠+2 / 늦밤잠+1
+IF A > 0
+    A -= FLAG:0
+    ;휴식 스택 최대값 설정
+    SIF FLAG:2 > 3
+        FLAG:2 = 3
+
+    ;손님 오는지 판단
+    CALL JUDGE_GUEST
+    ;다음날
+    IF A == 0
+        A += 3+(FLAG:2)
+        FLAG:2 = 0
+        CALL TIME_AGO
+    ENDIF
+ELSE
+    PRINTL ACT_TICK_AGO 함수 오류
+ENDIF
+FLAG:0 = 0   ;행동틱 여부
+;버프 확인해보기
+CALL CHECK_BUFF
+
+;청소를 했다면 깨끗함 유지 지속시간 감소
+IF FLAG:3 > 0
+    FLAG:3 -= 1
+ELSE
+    CALL GET_DIRTY
+ENDIF
+
+
+;---------------------------------------
+;시간 보냄
+;---------------------------------------
+@TIME_AGO
+;시간 (0=새벽 1=아침 2=점심 3=낮 4=저녘 5=밤 6=늦은밤)
+#DIM TIME_LIMIT  ;하루의 시간
+TIME_LIMIT = 7
+
+IF TIME == TIME_LIMIT-1
+    DAY += 1
+    
+    ;여관 아이템 지속시간 0~2:외관 / 3~5:객실 / 6~8:소문
+    REPEAT 9
+    SIF DECORATE_ITEM_TIME:COUNT > 0
+        DECORATE_ITEM_TIME:COUNT -= 1
+    SIF DECORATE_ITEM_TIME:COUNT == 0
+    ;0~2:외관 / 3~5:객실 / 6~8:소문 / 9~11:요리(X)
+        CALL UNEQUIP_HOTEL_EFFECT,COUNT
+    REND
+
+    ;회복
+    BASE:MASTER:0 = MAXBASE:MASTER:0
+    BASE:MASTER:1 = MAXBASE:MASTER:1
+
+    ;플래그 초기화
+    ;수면제
+    FLAG:4 = 0
+
+    ;마켓 물품 초기화
+    VARSIZE MARKET_ITEM_KIND
+    REPEAT RESULT
+        MARKET_ITEM_KIND:COUNT = 0
+    REND
+ENDIF
+
+;대상자 출현
+;SIF TIME >= 1 && TIME < 5 && RAND:10 == 0
+SIF TIME >= 1 && TIME < 5
+    CALL ENTER_MY_HOTEL
+
+TIME = (TIME+1)%TIME_LIMIT
+
+
+
+
+
+

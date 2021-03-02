@@ -1,0 +1,107 @@
+﻿;---------------------------------------
+;게임 상단 화면
+;---------------------------------------
+@DRAW_HIGH_MENU
+#DIMS TIME_KOREAN
+ALIGNMENT LEFT
+DRAWLINEFORM %UNICODE(0x2550)%
+;시간을 문자로
+;0새벽/1아침/2점심/3낮/4저녘/5밤/6늦은밤
+SELECTCASE TIME
+    CASE 0
+     TIME_KOREAN = 새벽
+    CASE 1
+     TIME_KOREAN = 아침
+    CASE 2
+     TIME_KOREAN = 점심
+    CASE 3
+     TIME_KOREAN = 낮
+    CASE 4
+     TIME_KOREAN = 저녘
+    CASE 5
+     TIME_KOREAN = 밤
+    CASE 6
+     TIME_KOREAN = 늦은밤
+ENDSELECT
+PRINT   
+PRINTFORM %UNICODE(0x25A0)%%NAME:MASTER%
+PRINT      
+PRINTFORM   {DAY}일째 영업중
+PRINT      
+PRINTFORM 시간:%TIME_KOREAN%
+PRINT      
+PRINTFORM 남은 행동력:{A}
+PRINT      
+PRINTFORML 소지금 {MONEY} %MONEYLABEL%
+
+PRINT   
+CALL BASE_BAR(MASTER, "체력", 18, "초록")
+PRINT      
+CALL BASE_BAR(MASTER, "기력", 18, "파랑","「개행」")
+
+DRAWLINEFORM %UNICODE(0x2500)%
+
+
+;---------------------------------------
+;게임 메인 화면
+;---------------------------------------
+@DRAW_MAINMENU
+#DIM DYNAMIC SUM_LV,4
+;      A      /    B   /   C
+;행동수 최대:3 / 투숙객 / 식사
+CLEARLINE 1000
+
+CALL DRAW_HIGH_MENU
+
+PRINT   위험도
+;BAR 현재값,최대값,BAR표시문자 갯수
+BAR BASE:MASTER:10,MAXBASE:MASTER:10,20
+PRINTFORML  ({BASE:MASTER:10}/{MAXBASE:MASTER:10}) 
+
+PRINT   청결도
+BAR BASE:MASTER:11,MAXBASE:MASTER:11,20
+PRINTFORML  ({BASE:MASTER:11}/{MAXBASE:MASTER:11}) 
+PRINTL
+
+PRINTFORM   투숙객:{B}명
+PRINT      
+PRINTFORML 식사:{C}명
+
+PRINT   작동중 ITEM : 
+    ;투명보관함이 있고, 보관함 마력원이 있을경우
+    SIF (ITEM:271 == 1) && (ITEM:26 > 0)
+        PRINT 〖투명보관함〗
+PRINTL
+
+PRINT   준비된 요리 : 
+    IF (FLAG:1) == 0
+        PRINTL 없음
+    ELSE
+        PRINTFORML %ITEMNAME:(장착_요리:0)% 
+    ENDIF
+PRINTL
+
+PRINT   외관장식 : 
+PRINTFORML %ITEMNAME:(장착_외관:0)%   %ITEMNAME:(장착_외관:1)%   %ITEMNAME:(장착_외관:2)% 
+PRINT   객실장식 : 
+PRINTFORML %ITEMNAME:(장착_객실:0)%   %ITEMNAME:(장착_객실:1)%   %ITEMNAME:(장착_객실:2)% 
+;PRINT   게시판장식 : 
+;PRINTFORML %ITEMNAME:(장착_소문:0)%   %ITEMNAME:(장착_소문:1)%   %ITEMNAME:(장착_소문:2)% 
+PRINTL
+PRINT   
+SUM_LV:0 = 외관LV + BUFF_LV:0 + DECORATE_ITEM_LV:0 + DECORATE_ITEM_LV:1 + DECORATE_ITEM_LV:2
+SUM_LV:1 = 객실LV + BUFF_LV:1 + DECORATE_ITEM_LV:3 + DECORATE_ITEM_LV:4 + DECORATE_ITEM_LV:5
+SUM_LV:2 = 소문LV + BUFF_LV:2 + DECORATE_ITEM_LV:6 + DECORATE_ITEM_LV:7 + DECORATE_ITEM_LV:8
+SUM_LV:3 = 요리LV + BUFF_LV:3 + DECORATE_ITEM_LV:9 + DECORATE_ITEM_LV:10 + DECORATE_ITEM_LV:11
+
+PRINTFORM %STR:6010%여관의 상태 -  
+PRINTFORM 외관LV:{SUM_LV:0}
+PRINT    
+PRINTFORM 객실LV:{SUM_LV:1}
+PRINT    
+PRINTFORM 소문LV:{SUM_LV:2}
+PRINT    
+PRINTFORML 요리LV:{SUM_LV:3}
+DRAWLINEFORM %UNICODE(0x2500)%
+PRINTL
+

@@ -1,0 +1,1072 @@
+﻿;---------------------------------------
+;@SHOW_TARGET_STATE, T_CHARA, ARG
+;히로인 정보보기. INPUT명령어 넣지 않기.
+;ARG : -1=방문한 히로인, 1=히로인 정보보기
+;---------------------------------------
+@SHOW_TARGET_STATE, T_CHARA, ARG
+#DIM DYNAMIC T_CHARA
+;타겟 캐릭터 ID
+#DIM DYNAMIC PAGE_STATE
+;스테이터스 페이지
+#DIM DYNAMIC NUM_FRONT
+#DIM DYNAMIC NUM_BACK
+;소숫점 앞, 뒤
+PAGE_STATE = 111
+
+WHILE 1
+    PRINTL
+    DRAWLINEFORM %UNICODE(0x2550)%
+    PRINTFORM  %CALLNAME:T_CHARA%
+    PRINT (
+    IF CFLAG:T_CHARA:31 < 20
+        PRINTFORM %UNICODE(0x16A0)%%UNICODE(0x16A2)%%UNICODE(0x16B2)%%UNICODE(0x16B4)%
+    ELSE
+        PRINTFORM {CFLAG:T_CHARA:31}세
+    ENDIF
+    PRINTL )
+    PRINT  
+    CALL BASE_BAR(T_CHARA, "체력", 18, "초록")
+    PRINT     
+    CALL BASE_BAR(T_CHARA, "기력", 18, "파랑","「개행」")
+
+    NUM_FRONT = (CFLAG:T_CHARA:32)/10
+    NUM_BACK = (CFLAG:T_CHARA:32)%10
+    PRINTFORM  신장:{NUM_FRONT}.{NUM_BACK}cm
+    NUM_FRONT = (CFLAG:T_CHARA:33)/10
+    NUM_BACK = (CFLAG:T_CHARA:33)%10
+    PRINTFORML      체중:{NUM_FRONT}.{NUM_BACK}kg
+    IF T_CHARA != 0
+        NUM_FRONT = (CFLAG:T_CHARA:34)/10
+        NUM_BACK = (CFLAG:T_CHARA:34)%10
+        PRINTFORM  B:{NUM_FRONT}.{NUM_BACK}cm
+
+        NUM_FRONT = (CFLAG:T_CHARA:35)/10
+        NUM_BACK = (CFLAG:T_CHARA:35)%10
+        PRINTFORM      W:{NUM_FRONT}.{NUM_BACK}cm
+        
+        NUM_FRONT = (CFLAG:T_CHARA:36)/10
+        NUM_BACK = (CFLAG:T_CHARA:36)%10
+        PRINTFORML      H:{NUM_FRONT}.{NUM_BACK}cm
+        
+        PRINTL
+        PRINTFORML  호감도 : {CFLAG:T_CHARA:1}       신뢰도 : {CFLAG:T_CHARA:2}
+    ENDIF
+
+    SELECTCASE PAGE_STATE
+        CASE 111
+            CALL SHOW_TALENT_STATE, T_CHARA
+            CALL SHOW_BATTLE_QUEST_STATE,T_CHARA
+            DRAWLINE
+            PRINTL  [333] 경험과 보주             [222] 능력과 각인
+        CASE 222
+            CALL SHOW_ABL_MARK_STATE,T_CHARA
+            PRINTL  [111] 소질과 의뢰             [333] 경험과 보주
+        CASE 333
+            CALL SHOW_EXP_STATE,T_CHARA
+            SIF T_CHARA != 0
+                CALL SHOW_JUEL_STATE,T_CHARA
+            DRAWLINE
+            PRINTL  [222] 능력과 각인             [111] 소질과 의뢰
+    ENDSELECT
+    PRINTL
+    
+    IF ARG == 1
+        PRINTL                [88] 이전 캐릭터
+        PRINTL                [22] 다음 캐릭터
+        PRINTL
+        PRINTL  [999] 돌아간다
+
+        INPUT
+        SELECTCASE RESULT
+            CASE 88
+                IF T_CHARA == 0
+                    T_CHARA = CHARANUM - 1
+                ELSE
+                    T_CHARA = ((T_CHARA-1)%CHARANUM)
+                ENDIF
+            CASE 22
+                T_CHARA = ((T_CHARA+1)%CHARANUM)
+                SIF T_CHARA == CHARANUM
+                    T_CHARA = 1
+            CASE 999
+                RETURN 0
+            CASE 111, 222, 333
+                PAGE_STATE = RESULT
+        ENDSELECT
+    ELSEIF ARG == -1
+        PRINTL  [99] 꺼져!(내쫓기)
+        PRINTL
+        PRINTL  [1] 다른 것 같은데..
+        PRINTL  [0] 맞아. 이런 모습이야.
+        WHILE 1
+            INPUT
+            SELECTCASE RESULT
+                CASE 99, 1, 0
+                    RETURN RESULT
+                ;캐릭터 결정판단
+                CASE 111, 222, 333
+                    PAGE_STATE = RESULT
+                    BREAK
+                ;페이지 넘기기
+                CASEELSE
+                    BREAK
+            ENDSELECT
+        WEND
+    ELSE
+        PRINTW 인수 ARG 오류.
+    ENDIF
+WEND
+
+
+
+;---------------------------------------
+;@SHOW_TALENT_STATE, T_CHARA
+;#DIM SAVEDATA A_SHOW_TALENT_NUM,3,100
+;성격
+;#DIM SAVEDATA B_SHOW_TALENT_NUM,3,100
+;체질
+;#DIM SAVEDATA C_SHOW_TALENT_NUM,3,100
+;특수
+;0-여기서부터, 1-여기까지, 2-사이의 갯수.
+;#DIM SAVEDATA TALENT_ARRAY_COUNT,3
+;배열별 0이 아닌 값을 세어주는 변수(0=A,1=B,2=C)
+;---------------------------------------
+@SHOW_TALENT_STATE, T_CHARA
+#DIM DYNAMIC T_CHARA
+;타겟 캐릭터 ID
+#DIM DYNAMIC F_COUNT
+;FOR 돌리기용 변수
+#DIM DYNAMIC L_COUNT
+;개행용 변수
+
+DRAWLINE
+PRINT  성별 : 
+SELECTCASE TALENT:T_CHARA:0
+    CASE 0
+        PRINT 여
+    CASE 1
+        PRINT 남
+    CASE 2
+        PRINT 후타나리
+ENDSELECT
+PRINT      
+PRINT 종족 : 
+SELECTCASE CFLAG:T_CHARA:8
+    CASE 0
+        PRINT 인간
+    CASE 1
+        PRINT 엘프
+    CASE 2
+        PRINT 수인족
+    CASE 3
+        PRINT 인어
+    CASE 4
+        PRINT 흡혈귀
+    CASE 5
+        PRINT 드래곤
+    CASE 6
+        PRINT 드워프
+    CASE 7
+        PRINT 천족
+    CASE 8
+        PRINT 마족
+ENDSELECT
+PRINTL
+PRINT  신분 : 
+SELECTCASE TALENT:T_CHARA:801
+    CASE 0
+        PRINT 노예
+    CASE 1
+        PRINT 평민
+    CASE 2
+        PRINT 귀족
+    CASE 3
+        PRINT 왕족
+    CASE 4
+        PRINT 황족
+ENDSELECT
+PRINT      
+PRINT 용병등급 - 
+SELECTCASE TALENT:T_CHARA:806
+    CASE 1
+        PRINTL 초보자
+    CASE 2
+        PRINT F
+    CASE 3
+        PRINT E
+    CASE 4
+        PRINT D
+    CASE 5
+        PRINT C
+    CASE 6
+        PRINT B
+    CASE 7
+        PRINT A
+    CASE 8
+        PRINT S
+ENDSELECT
+SIF TALENT:T_CHARA:806 > 1
+    PRINTL 급 용병
+
+L_COUNT = 0
+PRINTL
+PRINT  성격 : 
+;대사관련(첫타) 236~241
+;21-25 / 51-58 / 61-64 / 91-93 / 104-108 / 111-118
+;196-199 / 221-222 / 224-225
+FOR F_COUNT,0,TALENT_ARRAY_COUNT:0
+    REPEAT A_SHOW_TALENT_NUM:2:F_COUNT
+        IF (L_COUNT)%7 == 6
+            PRINTL
+            PRINT  
+            L_COUNT += 1
+        ENDIF
+        ;줄바꿈
+        IF (A_SHOW_TALENT_NUM:0:F_COUNT)+COUNT == 21
+        ;담력
+            IF TALENT:T_CHARA:((A_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == -1
+                PRINTPLAINFORM [겁장이] 
+                L_COUNT += 1
+            ELSEIF TALENT:T_CHARA:((A_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == 1
+                PRINTPLAINFORM [다부짐] 
+                L_COUNT += 1
+            ENDIF
+        ELSEIF (A_SHOW_TALENT_NUM:0:F_COUNT)+COUNT == 22
+        ;태도
+            IF TALENT:T_CHARA:((A_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == -1
+                PRINTPLAINFORM [솔직함] 
+                L_COUNT += 1
+            ELSEIF TALENT:T_CHARA:((A_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == 1
+                PRINTPLAINFORM [반항적] 
+                L_COUNT += 1
+            ENDIF
+        ELSEIF (A_SHOW_TALENT_NUM:0:F_COUNT)+COUNT == 23
+        ;응답
+            IF TALENT:T_CHARA:((A_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == -1
+                PRINTPLAINFORM [얌전함] 
+                L_COUNT += 1
+            ELSEIF TALENT:T_CHARA:((A_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == 1
+                PRINTPLAINFORM [거만함] 
+                L_COUNT += 1
+            ENDIF
+        ELSEIF (A_SHOW_TALENT_NUM:0:F_COUNT)+COUNT == 24
+        ;자존심
+            IF TALENT:T_CHARA:((A_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == -1
+                PRINTPLAINFORM [자존심 낮음] 
+                L_COUNT += 1
+            ELSEIF TALENT:T_CHARA:((A_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == 1
+                PRINTPLAINFORM [자존심 높음] 
+                L_COUNT += 1
+            ENDIF
+        ELSEIF (A_SHOW_TALENT_NUM:0:F_COUNT)+COUNT == 51
+        ;성적흥미
+            IF TALENT:T_CHARA:((A_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == -1
+                PRINTPLAINFORM [보수적] 
+                L_COUNT += 1
+            ELSEIF TALENT:T_CHARA:((A_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == 1
+                PRINTPLAINFORM [호기심] 
+                L_COUNT += 1
+            ENDIF
+        ELSEIF (A_SHOW_TALENT_NUM:0:F_COUNT)+COUNT == 52
+        ;비관적/낙관적
+            IF TALENT:T_CHARA:((A_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == -1
+                PRINTPLAINFORM [비관적] 
+                L_COUNT += 1
+            ELSEIF TALENT:T_CHARA:((A_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == 1
+                PRINTPLAINFORM [낙관적] 
+                L_COUNT += 1
+            ENDIF
+        ELSEIF (A_SHOW_TALENT_NUM:0:F_COUNT)+COUNT == 61
+        ;정조
+            IF TALENT:T_CHARA:((A_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == -1
+                PRINTPLAINFORM [정조무관심] 
+                L_COUNT += 1
+            ELSEIF TALENT:T_CHARA:((A_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == 1
+                PRINTPLAINFORM [정조 관념] 
+                L_COUNT += 1
+            ENDIF
+        ELSEIF (A_SHOW_TALENT_NUM:0:F_COUNT)+COUNT == 62
+        ;자기애
+            IF TALENT:T_CHARA:((A_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == -1
+                PRINTPLAINFORM [억압] 
+                L_COUNT += 1
+            ELSEIF TALENT:T_CHARA:((A_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == 1
+                PRINTPLAINFORM [해방] 
+                L_COUNT += 1
+            ENDIF
+        ELSEIF (A_SHOW_TALENT_NUM:0:F_COUNT)+COUNT == 62
+        ;수치심
+            IF TALENT:T_CHARA:((A_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == -1
+                PRINTPLAINFORM [수치심 없음] 
+                L_COUNT += 1
+            ELSEIF TALENT:T_CHARA:((A_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == 1
+                PRINTPLAINFORM [부끄러움] 
+                L_COUNT += 1
+            ENDIF
+        ELSEIF (A_SHOW_TALENT_NUM:0:F_COUNT)+COUNT == 112
+        ;성별기호
+            IF TALENT:T_CHARA:((A_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == -1
+                PRINTPLAINFORM [양도] 
+                L_COUNT += 1
+            ELSEIF TALENT:T_CHARA:((A_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == 1
+                PRINTPLAINFORM [남성기피] 
+                L_COUNT += 1
+            ELSEIF TALENT:T_CHARA:((A_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == 2
+                PRINTPLAINFORM [여성기피] 
+                L_COUNT += 1
+            ENDIF
+        ;ELSEIF 
+        ELSE
+        ;기타 BIT없는 TALENT들
+            IF TALENT:T_CHARA:((A_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == 1
+                PRINTPLAINFORM [%TALENTNAME:((A_SHOW_TALENT_NUM:0:F_COUNT)+COUNT)%] 
+                L_COUNT += 1
+            ENDIF
+        ENDIF
+    REND
+NEXT
+
+L_COUNT = 0
+PRINTL
+PRINT  체질 : 
+;31-32 / 71-74 / 81-83 / 101-103 / 121-123 / 131-141 / 171-176
+;201-205 / 223 / 226 / 251-254
+FOR F_COUNT,0,TALENT_ARRAY_COUNT:1
+    REPEAT B_SHOW_TALENT_NUM:2:F_COUNT
+        IF L_COUNT%7 == 6
+            PRINTL
+            PRINT 
+            L_COUNT += 1 
+        ENDIF
+        ;7개이상 작성 되었을 경우 다음글.
+
+        IF F_COUNT == 0 && COUNT == 0
+        ;맨 처음 출력되기
+            IF TALENT:T_CHARA:1 == 0 && TALENT:T_CHARA:0 == 0
+                ;처녀
+                LOCAL:1 = GETCOLOR()
+                ;복귀할 글자색
+                SETCOLOR 0xFF8200
+                ;글자색 "주황"
+                PRINTPLAINFORM [처녀] 
+                SETCOLOR LOCAL:1
+                ;글자색 복구
+                L_COUNT += 1
+            ENDIF
+            IF TALENT:T_CHARA:2 == 0
+                ;A처녀
+                LOCAL:1 = GETCOLOR()
+                ;복귀할 글자색
+                SETCOLOR 0x6262FF
+                ;글자색 "연한 파랑"
+                PRINTPLAINFORM [A처녀] 
+                SETCOLOR LOCAL:1
+                ;글자색 복구
+                L_COUNT += 1
+            ENDIF
+        ENDIF
+
+        IF (B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT == 31 && T_CHARA == 0
+        ;용모-MASTER
+            IF TALENT:T_CHARA:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == -1
+                PRINTPLAINFORM [추악] 
+                L_COUNT += 1
+            ELSEIF TALENT:T_CHARA:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == 1
+                PRINTPLAINFORM [잘생김] 
+                L_COUNT += 1
+            ENDIF
+        ELSEIF (B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT == 32 && T_CHARA == 0
+        ;외관연령-MASTER
+            IF TALENT:T_CHARA:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == -1
+                PRINTPLAINFORM [아이] 
+                L_COUNT += 1
+            ELSEIF TALENT:T_CHARA:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == 0
+                PRINTPLAINFORM [청년] 
+                L_COUNT += 1
+            ELSEIF TALENT:T_CHARA:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == 1
+                PRINTPLAINFORM [중년] 
+                L_COUNT += 1
+            ELSEIF TALENT:T_CHARA:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == 2
+                PRINTPLAINFORM [노인] 
+                L_COUNT += 1
+            ENDIF
+        ELSEIF (B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT == 71
+        ;통각
+            IF TALENT:T_CHARA:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == -1
+                PRINTPLAINFORM [고통에 약하다] 
+                L_COUNT += 1
+            ELSEIF TALENT:T_CHARA:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == 1
+                PRINTPLAINFORM [고통에 강하다] 
+                L_COUNT += 1
+            ENDIF
+        ELSEIF (B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT == 72
+        ;젖기쉬움
+            IF TALENT:T_CHARA:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == -1
+                PRINTPLAINFORM [젖기 어렵다] 
+                L_COUNT += 1
+            ELSEIF TALENT:T_CHARA:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == 1
+                PRINTPLAINFORM [젖기 쉽다] 
+                L_COUNT += 1
+            ENDIF
+        ELSEIF (B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT == 73
+        ;포션감각
+            IF TALENT:T_CHARA:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == -1
+                PRINTPLAINFORM [포션둔감] 
+                L_COUNT += 1
+            ELSEIF TALENT:T_CHARA:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == 1
+                PRINTPLAINFORM [포션민감] 
+                L_COUNT += 1
+            ENDIF
+        ELSEIF (B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT == 81
+        ;습득속도
+            IF TALENT:T_CHARA:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == -1
+                PRINTPLAINFORM [습득느림] 
+                L_COUNT += 1
+            ELSEIF TALENT:T_CHARA:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == 1
+                PRINTPLAINFORM [습득빠름] 
+                L_COUNT += 1
+            ENDIF
+        ELSEIF (B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT == 71
+        ;쾌감응답
+            IF TALENT:T_CHARA:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == -1
+                PRINTPLAINFORM [쾌감에 부정] 
+                L_COUNT += 1
+            ELSEIF TALENT:T_CHARA:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == 1
+                PRINTPLAINFORM [쾌감에 솔직] 
+                L_COUNT += 1
+            ENDIF
+        ELSEIF (B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT == 131
+        ;체형
+            IF TALENT:T_CHARA:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == -3
+                PRINTPLAINFORM [난쟁이] 
+                L_COUNT += 1
+            ELSEIF TALENT:T_CHARA:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == -2
+                PRINTPLAINFORM [유아 체형] 
+                L_COUNT += 1
+            ELSEIF TALENT:T_CHARA:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == -1
+                PRINTPLAINFORM [작은 체형] 
+                L_COUNT += 1
+            ELSEIF TALENT:T_CHARA:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == 1
+                PRINTPLAINFORM [장신] 
+                L_COUNT += 1
+            ELSEIF TALENT:T_CHARA:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == 2
+                PRINTPLAINFORM [거구] 
+                L_COUNT += 1
+            ELSEIF TALENT:T_CHARA:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == 3
+                PRINTPLAINFORM [거인] 
+                L_COUNT += 1
+            ENDIF
+        ELSEIF (B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT == 132
+        ;가슴사이즈
+            IF TALENT:T_CHARA:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == -2
+                PRINTPLAINFORM [절벽] 
+                L_COUNT += 1
+            ELSEIF TALENT:T_CHARA:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == -1
+                PRINTPLAINFORM [빈유] 
+                L_COUNT += 1
+            ELSEIF TALENT:T_CHARA:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == 1
+                PRINTPLAINFORM [거유] 
+                L_COUNT += 1
+            ELSEIF TALENT:T_CHARA:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == 2
+                PRINTPLAINFORM [폭유] 
+                L_COUNT += 1
+            ELSEIF TALENT:T_CHARA:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == 3
+                PRINTPLAINFORM [초유] 
+                L_COUNT += 1
+            ENDIF
+        ;ELSEIF 
+        ELSEIF (B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT == 133
+        ;V감도
+            IF TALENT:T_CHARA:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == -1
+                PRINTPLAINFORM [V둔감] 
+                L_COUNT += 1
+            ELSEIF TALENT:T_CHARA:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == 1
+                PRINTPLAINFORM [V민감] 
+                L_COUNT += 1
+            ENDIF
+        ELSEIF (B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT == 134
+        ;A감도
+            IF TALENT:T_CHARA:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == -1
+                PRINTPLAINFORM [A둔감] 
+                L_COUNT += 1
+            ELSEIF TALENT:T_CHARA:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == 1
+                PRINTPLAINFORM [A민감] 
+                L_COUNT += 1
+            ENDIF
+        ELSEIF (B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT == 135
+        ;B감도
+            IF TALENT:T_CHARA:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == -1
+                PRINTPLAINFORM [B둔감] 
+                L_COUNT += 1
+            ELSEIF TALENT:T_CHARA:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == 1
+                PRINTPLAINFORM [B민감] 
+                L_COUNT += 1
+            ENDIF
+        ELSEIF (B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT == 136
+        ;M감도
+            IF TALENT:T_CHARA:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == -1
+                PRINTPLAINFORM [M둔감] 
+                L_COUNT += 1
+            ELSEIF TALENT:T_CHARA:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == 1
+                PRINTPLAINFORM [M민감] 
+                L_COUNT += 1
+            ENDIF
+        ELSEIF (B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT == 137
+        ;C감도
+            IF TALENT:T_CHARA:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == -1
+                PRINTPLAINFORM [C둔감] 
+                L_COUNT += 1
+            ELSEIF TALENT:T_CHARA:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == 1
+                PRINTPLAINFORM [C민감] 
+                L_COUNT += 1
+            ENDIF
+
+        ELSE
+        ;기타 BIT없는 TALENT들
+            IF TALENT:T_CHARA:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == 1
+                PRINTPLAINFORM [%TALENTNAME:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT)%] 
+                L_COUNT += 1
+            ENDIF
+        ENDIF
+    REND
+NEXT
+
+L_COUNT = 0
+PRINTL
+PRINT  특수 : 
+;151-156 / 218-220 / 261-264 / 271-273
+FOR F_COUNT,0,TALENT_ARRAY_COUNT:2
+    REPEAT C_SHOW_TALENT_NUM:2:F_COUNT
+        IF (L_COUNT)%7 == 6
+            PRINTL
+            PRINT  
+        ENDIF
+        ;7개이상 작성 되었을 경우 다음글.
+
+        IF F_COUNT == 0 && COUNT == 0
+            IF CFLAG:T_CHARA:22 == 1
+                PRINTPLAINFORM [순결봉인] 
+                L_COUNT += 1
+            ENDIF
+        ENDIF
+        ;맨 처음에 출력될 TALENT가 아닌 소질.
+
+        IF (C_SHOW_TALENT_NUM:0:F_COUNT)+COUNT == 151
+        ;회복속도
+            IF TALENT:T_CHARA:((C_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == -1
+                PRINTPLAINFORM [회복느림] 
+                L_COUNT += 1
+            ELSEIF TALENT:T_CHARA:((C_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == 1
+                PRINTPLAINFORM [회복빠름] 
+                L_COUNT += 1
+            ENDIF
+        ELSEIF (C_SHOW_TALENT_NUM:0:F_COUNT)+COUNT == 152
+        ;수면습관
+            IF TALENT:T_CHARA:((C_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == -1
+                PRINTPLAINFORM [불면증] 
+                L_COUNT += 1
+            ELSEIF TALENT:T_CHARA:((C_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == 1
+                PRINTPLAINFORM [숙면] 
+                L_COUNT += 1
+            ENDIF
+        ;ELSEIF 
+
+        ELSE
+        ;기타 BIT없는 TALENT들
+            IF TALENT:T_CHARA:((C_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == 1
+                PRINTPLAINFORM [%TALENTNAME:((C_SHOW_TALENT_NUM:0:F_COUNT)+COUNT)%] 
+                L_COUNT += 1
+            ENDIF
+        ENDIF
+    REND
+NEXT
+
+;--MASTER 지식--
+L_COUNT = 0
+PRINTL
+REPEAT 100
+    SIF T_CHARA == 0 && COUNT == 0
+        PRINT  지식 : 
+    IF TALENTNAME:(900+COUNT) != "" && T_CHARA == 0 && TALENT:MASTER:(900+COUNT) == 1
+        PRINTPLAINFORM  [%TALENTNAME:(900+COUNT)%]
+        L_COUNT += 1
+        SIF L_COUNT%4 == 0
+            PRINTL
+    ENDIF
+REND
+PRINTL
+
+IF T_CHARA != 0
+    PRINTL
+    PRINT  함락 : 
+    ;TALENT / 13~18
+    REPEAT 6
+        IF TALENT:T_CHARA:(18-COUNT) == 1
+            LOCAL:1 = GETCOLOR()
+            ;복귀할 글자색
+            SETCOLOR 0xC07070
+            ;글자색 "빨강"
+            PRINTFORML %TALENTNAME:(18-COUNT)%
+            SETCOLOR LOCAL:1
+            ;글자색 원상복귀
+            BREAK
+        ELSEIF COUNT == 6-1
+            PRINTFORML 미함락
+        ENDIF
+    REND
+ENDIF
+;뒤에서부터 확인하기.
+
+
+
+;---------------------------------------
+;@SHOW_ABL_MARK_STATE,C_ID
+;능력치(ABL) 보여주는 함수
+;각인과 능력을 일괄해 표시한다
+;세로폭을 압축하고 싶다
+;EraTWKR 산.
+;---------------------------------------
+@SHOW_ABL_MARK_STATE,C_ID
+#DIM  C_ID
+{
+#DIMS CONST DISP_NAME , 63 = 
+	"고통",     "ㅤ기교ㅤ", "화술기능", "C감각", "손기술ㅤ", "마조끼", "자위중독",
+	"쾌락",     "ㅤ친밀ㅤ", "요리기능", "V감각", "질기술ㅤ", "새드끼", "정액중독",
+	"굴복",     "ㅤ순종ㅤ", "채집기능", "A감각", "A기술ㅤ", "레즈끼", "레즈중독",
+	"반발",     "ㅤ욕망ㅤ", "도축기능", "B감각", "가슴기술", "수간", "질사중독",
+	"최면",     "봉사정신", "낚시기능", "M감각", "혀기술ㅤ",         "", "항사중독",
+	"수면",     "노출벽",   "조제기능",     "", "허리기술",         "", "",
+	"마크",     "  분유  ", " 최면 ",       "", "",         "", "",
+	"마크",         "",     " 촉수 ", "",       "",         "", "",
+	"마크",         "",     "",       "", "",         "", "",
+}
+
+FOR LOCAL, 0, 63
+	CALL PRINT_ABILITY(C_ID, DISP_NAME:LOCAL, LOCAL)
+	SIF LOCAL % 7 == 6
+		PRINTFORML 
+NEXT
+
+
+;↑전용의 표시 함수
+@PRINT_ABILITY(C_ID, DISP_NAME, VIEW)
+#DIM  C_ID
+#DIMS DISP_NAME
+#DIM  VIEW
+{
+#DIM CONST DISP_ID , 63 = 
+	0, 10, 71, 0, 51, 32, 30,
+	1, 11, 72, 1, 52, 31, 31,
+	2, 12, 73, 2, 53, 33, 32,
+	3, 13, 74, 3, 54, 34, 33,
+	4, 14, 75, 4, 55,  0, 34,
+	5, 15, 76, 0, 56,  0, 35,
+	6, 16, 81, 0,  0,  0,  0,
+	6,  0, 82, 0,  0,  0,  0,
+	6,  0,  0, 0,  0,  0,  0,
+}
+PRINTFORM 　
+SELECTCASE DISP_NAME
+CASE ""
+	$SHOW_BLANK
+	PRINTFORM 　　　　　　　　
+CASE "고통", "쾌락", "굴복", "반발", "최면", "수면","마크"
+	IF C_ID == MASTER
+		PRINTFORM %"　" * 6%
+	ELSEIF DISP_NAME == "반발"
+		PRINTFORM %DISP_NAME, 4%：
+		CALL COLOR_STAMP(MARK:C_ID:(DISP_ID:VIEW), 3, "×", C_RED)
+	ELSEIF GROUPMATCH(DISP_NAME, "마크")
+		PRINTFORM %"　" * 6%
+	ELSE
+		PRINTFORM %DISP_NAME, 4%：
+		CALL COLOR_STAMP(MARK:C_ID:(DISP_ID:VIEW), 3, "★", 0xFFFF00)
+	ENDIF
+{
+CASE 
+	"손기술ㅤ", "질기술ㅤ", "A기술ㅤ", "가슴기술", "혀기술ㅤ", "허리기술",
+	"화술기능", "요리기능", "채집기능", "도축기능", "낚시기능", "조제기능",
+    " 최면 ", " 촉수 "
+}
+	PRINTFORM %DISP_NAME, 8%：
+	CALL PRINT_RANK(ABL:C_ID:(DISP_ID:VIEW), "MAX_6")
+	PRINTFORM  {ABL:C_ID:(DISP_ID:VIEW), 3}
+CASEELSE
+	SIF GROUPMATCH(DISP_NAME, "레즈끼", "레즈중독") && !GETBIT(TALENT:C_ID:0, 0)
+		GOTO SHOW_BLANK
+	PRINTFORM %DISP_NAME, 8%：
+	CALL PRINT_RANK(ABL:C_ID:(DISP_ID:VIEW), "MAX_99")
+	PRINTFORM  {ABL:C_ID:(DISP_ID:VIEW), 3}
+ENDSELECT
+
+;---------------------------------------
+;@SHOW_EXP_STATE,T_CHARA
+;경험(EXP) 보여주는 함수
+
+;#DIM SAVEDATA SHOW_EXP_NUM,3,200
+;정보 볼때 표시되는 EXP번호들(0=여기서부터 1=여기까지 2=갯수)
+;---------------------------------------
+@SHOW_EXP_STATE,T_CHARA
+#DIM DYNAMIC T_CHARA
+;타겟 캐릭터 ID
+#DIM DYNAMIC F_COUNT
+;FOR 돌리기용 변수
+#DIM DYNAMIC L_COUNT
+;개행용 변수
+
+DRAWLINE
+
+FOR F_COUNT, 0, 100
+	SIF !STRLENS(EXPNAME:F_COUNT)
+		CONTINUE
+    ;EXP.CSV에 등록되지 않으면 CONTINUE
+	SIF !EXP:T_CHARA:F_COUNT
+		CONTINUE
+	;미경험을 표시시키지 않다
+    PRINTFORM  %EXPNAME:F_COUNT,6%:{EXP:T_CHARA:F_COUNT, 5, LEFT} 
+	L_COUNT += 1
+	SIF L_COUNT % 5 == 0
+		PRINTL 
+NEXT
+PRINTL
+
+
+
+;---------------------------------------
+;@SHOW_JUEL_STATE,T_CHARA
+;조교 구슬(JUEL) 보여주는 함수
+;---------------------------------------
+@SHOW_JUEL_STATE,T_CHARA
+#DIM DYNAMIC T_CHARA
+;타겟 캐릭터 ID
+#DIM DYNAMIC F_COUNT
+;FOR 돌리기용 변수
+#DIM DYNAMIC L_COUNT
+;개행용 변수
+
+DRAWLINE
+
+FOR F_COUNT, 0, 14
+    IF F_COUNT == 5
+		LOCAL = 16
+	ELSEIF F_COUNT == 13
+		LOCAL = 99
+	ELSE
+		LOCAL = F_COUNT
+	ENDIF
+    ;5윤활,13반감,14불쾌,15억울은 보유한 구슬로 계산되지 않는 파라미터
+	PRINTFORM  %PALAMNAME:LOCAL,6%의 구슬:{JUEL:T_CHARA:LOCAL,5,LEFT}
+    L_COUNT+=1
+    SIF (L_COUNT)%5 == 0
+		PRINTL 
+    ;줄 바꿈
+NEXT
+PRINTL
+
+
+
+;---------------------------------------
+;@SHOW_BATTLE_QUEST_STATE,T_CHARA
+;전투능력과 퀘스트상황 보여주는 함수
+;CFLAG:13 = 직업번호, 4 = 직업LV, 5 = 소지금
+;ABL:91,92,93 = 공격,방어,마력
+;스킬 미구현
+;CFLAG:341 = 의뢰상황(BIT 0=쉬는중 1=의뢰진행중 2=의뢰거부중)
+;CFLAG:342 = 의뢰내용, 343 = 의뢰내용갯수
+;CFLAG:344 = 의뢰기간, 345 = 성공확률
+;---------------------------------------
+@SHOW_BATTLE_QUEST_STATE,T_CHARA
+#DIM DYNAMIC T_CHARA
+;타겟 캐릭터 ID
+#DIM DYNAMIC STORE_TARGET
+;원래 타겟
+
+DRAWLINE
+
+STORE_TARGET = TARGET
+TARGET = T_CHARA
+
+
+PRINTFORM  직업:%TALENTNAME:(CFLAG:13)%       
+PRINTFORML LV:{CFLAG:4}
+
+PRINTFORML  공격:{ABL:91}     방어:{ABL:92}     마력:{ABL:93}
+
+;PRINTFORML 스킬:
+
+IF T_CHARA == 0
+    PRINTL
+    PRINTFORML 소지금:{MONEY}%MONEYLABEL%
+ELSE
+    PRINTL
+    PRINTFORM  의뢰상황 : 
+    SELECTCASE CFLAG:341
+        CASE 0
+            PRINTL 쉬는중
+        CASE 1
+            PRINTL 진행중
+        CASE 2
+            PRINTL 거부중
+    ENDSELECT
+
+    PRINT  성공확률 : 
+    IF CFLAG:341 == 1
+        PRINTFORML {CFLAG:345}%UNICODE(0xFF05)%
+    ELSE
+        PRINTL
+    ENDIF
+
+    PRINT  의뢰내용 : 
+    IF CFLAG:341 == 1
+        PRINTFORML %ITEMNAME:(CFLAG:342)%, {CFLAG:343}개
+    ELSE
+        PRINTL
+    ENDIF
+
+    PRINT  남은 의뢰기간 : 
+    IF CFLAG:341 == 1
+        PRINTFORML {CFLAG:344}일
+    ELSE
+        PRINTL
+    ENDIF
+
+    PRINTL
+    PRINTFORML  소지금:{CFLAG:5}%MONEYLABEL%
+ENDIF
+
+;타겟 원상복귀
+TARGET = STORE_TARGET
+
+
+
+;-------------------------------------------------
+;신분 평가 표시 함수
+;-------------------------------------------------
+;원래는@PRINT_알파벳평가
+;인수를 평가 대상 수치로 하는 것으로 범용화해
+;RANK_SCALE의 명칭을 알기 쉽게 했다
+;-------------------------------------------------
+@PRINT_RANK(VAR_VALUE, RANK_SCALE)
+#DIM  VAR_VALUE  ;평가 대상 수치
+#DIMS RANK_SCALE ;평가에 사용하는 척도의 종류
+#DIM  RANK       ;평가 랭크, 수가 작을 정도 우수
+#DIM  RANK_NUM   ;평가 척도에 포함되는 평가의 종수
+CALL CALC_RANK(VAR_VALUE, RANK_SCALE, RANK, RANK_NUM)
+CALL PRINT_ALPHABET(RANK, RANK_NUM)
+
+
+
+;-------------------------------------------------
+;신분 평가 산출 함수
+;-------------------------------------------------
+;RANK_SCALE에 의거해 VAR_VALUE의 평가를 실시한다
+;REF에 의해 RANK/RANK_NUM로서 건네받은 인수의 수치를 직접 고쳐 쓴다
+;KR판 최대랭크 각 1단계씩 더 있음
+;-------------------------------------------------
+@CALC_RANK(VAR_VALUE, RANK_SCALE, RANK, RANK_NUM)
+#DIM      VAR_VALUE  ;평가 대상 수치
+#DIMS     RANK_SCALE ;평가에 사용하는 척도의 종류
+#DIM  REF RANK       ;평가 랭크, 수가 작을 정도 우수
+#DIM  REF RANK_NUM   ;평가 척도에 포함되는 평가의 종수
+SELECTCASE RANK_SCALE
+CASE "MAX_50000"
+;호감도용
+	RANK_NUM = 11
+	SELECTCASE VAR_VALUE
+	CASE IS >= 100000
+		RANK = 0
+	CASE IS >= 50000
+		RANK = 1
+	CASE IS >= 30000
+		RANK = 2
+	CASE IS >= 10000
+		RANK = 3
+	CASE IS >=  5000
+		RANK = 4
+	CASE IS >=  3000
+		RANK = 5
+	CASE IS >=  1500
+		RANK = 6
+	CASE IS >=  1000
+		RANK = 7
+	CASE IS >=   500
+		RANK = 8
+	CASE IS >=   100
+		RANK = 9
+	CASEELSE
+		RANK = 10
+	ENDSELECT
+CASE "MAX_20000"
+;신뢰도용
+	RANK_NUM = 11
+	SELECTCASE VAR_VALUE
+	CASE IS >= 40000
+		RANK = 0
+	CASE IS >= 20000
+		RANK = 1
+	CASE IS >= 10000
+		RANK = 2
+	CASE IS >=  3000
+		RANK = 3
+	CASE IS >=  1000
+		RANK = 4
+	CASE IS >=   500
+		RANK = 5
+	CASE IS >=   150
+		RANK = 6
+	CASE IS >=   100
+		RANK = 7
+	CASE IS >=    50
+		RANK = 8
+	CASE IS >=    10
+		RANK = 9
+	CASEELSE
+		RANK = 10
+	ENDSELECT
+CASE "MAX_99"
+;기술계 이외의ABL
+	;숫자가 세로에 줄서면(자) 매우 보기 나뻐서 의도적으로 인덴트않고들 하고 있습니다
+	RANK_NUM = 11
+	SELECTCASE VAR_VALUE
+	CASE IS >= 99
+			RANK = 0
+	CASE IS >= 80
+			RANK = 1
+	CASE IS >= 60
+			RANK = 2
+	CASE IS >= 40
+			RANK = 3
+	CASE IS >= 20
+			RANK = 4
+	CASE IS >= 10
+			RANK = 5
+	CASE IS >=  5
+			RANK = 6
+	CASE IS >=  3
+			RANK = 7
+	CASE IS >=  2
+			RANK = 8
+	CASE IS >=  1
+			RANK = 9
+	CASEELSE
+			RANK = 10
+	ENDSELECT
+CASE "MAX_6"
+;기능계 ABL
+	RANK_NUM = 8
+	SELECTCASE VAR_VALUE
+	CASE IS >= 7
+			RANK = 0
+	CASE IS >= 6
+			RANK = 1
+	CASE IS >= 5
+			RANK = 2
+	CASE IS >= 4
+			RANK = 3
+	CASE IS >= 3
+			RANK = 4
+	CASE IS >= 2
+			RANK = 5
+	CASE IS >= 1
+			RANK = 6
+	CASEELSE
+			RANK = 7
+	ENDSELECT
+CASEELSE
+	THROW 불명한 RANK_SCALE %RANK_SCALE%
+ENDSELECT
+
+
+
+;-------------------------------------------------
+;랭크 평가 표시 함수
+;-------------------------------------------------
+;랭크 평가(숫자가 작을 정도 우수)의 내용을 알파벳 표기해 컬러 표시한다
+;형식마저 있으면 별로 PRINT_RANK가 아니어도 사용할 수 있어
+;-------------------------------------------------
+@PRINT_ALPHABET(RANK, RANK_NUM)
+#DIM RANK
+#DIM RANK_NUM
+#DIMS CONST STR_RANK11, 11 = "Ph","Ex", "SS", " S", " A", " B", " C", " D", " E", " F", " G"
+#DIMS CONST STR_RANK8,   8 = "Ph","Ex", " S", " A", " B", " C", " D", " E"
+{
+#DIMS  CONST C_RANK11, 11 = 
+	"C_P_PURPLE", "C_BLUE","C_WHITE", "C_WHITE", "C_PINK", "C_RED", 
+	"C_ORANGE", "C_YELLOW", "C_GREEN", "C_AQUA", "C_GRAY"
+}
+#DIMS  CONST C_RANK8,   8 = "C_P_PURPLE", "C_BLUE","C_WHITE", "C_PINK", "C_RED", "C_ORANGE", "C_YELLOW", "C_GRAY"
+SELECTCASE RANK_NUM
+CASE 11
+	CALL COLOR_PRINT(STR_RANK11:RANK, C_RANK11:RANK, 2)
+CASE  8
+	CALL COLOR_PRINT(STR_RANK8:RANK, C_RANK8:RANK, 2)
+CASEELSE
+	THROW 부정한 RANK_NUM {RANK_NUM}
+ENDSELECT
+RESETCOLOR
+
+
+
+;-------------------------------------------------
+;물이 들어 PRINT 함수
+;-------------------------------------------------
+;건네준 문자를 건네준 색으로 PRINT 해 RESETCOLOR
+;광역 변수로 DIM는 있는 색의 이름만 가능(추가는 용이)
+;-------------------------------------------------
+@COLOR_PRINT(ARGS, C_NAME, STR_NUM = 2)
+#DIMS C_NAME
+#DIM  STR_NUM
+SIF !STRLENS(ARGS)
+	RETURN
+SELECTCASE C_NAME
+CASE "C_P_PURPLE"
+	SETCOLOR C_P_PURPLE
+CASE "C_BLUE"
+	SETCOLOR C_BLUE
+CASE "C_WHITE"
+	SETCOLOR C_WHITE
+CASE "C_PINK"
+	SETCOLOR C_PINK
+CASE "C_RED"
+	SETCOLOR C_RED
+CASE "C_ORANGE"
+	SETCOLOR C_ORANGE
+CASE "C_YELLOW"
+	SETCOLOR C_YELLOW
+CASE "C_GREEN"
+	SETCOLOR C_GREEN
+CASE "C_AQUA"
+	SETCOLOR C_AQUA
+CASE "C_GRAY"
+	SETCOLOR C_GRAY
+CASEELSE
+	THROW 부정한 C_NAME %C_NAME%
+ENDSELECT
+PRINTFORM %ARGS, STR_NUM%
+RESETCOLOR
+
+
+
+;-------------------------------------------------
+;컬러 스탬프 함수
+;-------------------------------------------------
+;특정의 기호를 특정의 색으로 나란해질 수 있다
+;MARK의 표시용이지만무슨 그 외에도 사용할 수 있겠지요
+;-------------------------------------------------
+@COLOR_STAMP(STAMP_NUM, MAX_NUM, STAMP_STR, STAMP_COLOR)
+#DIM  STAMP_NUM   ;늘어놓는 스탬프의 수
+#DIM  MAX_NUM     ;스탬프의 최대수
+#DIMS STAMP_STR   ;스탬프에 사용하는 캐릭터라인
+#DIM  STAMP_COLOR ;스탬프의 색
+#DIM  STAMP_LENGTH;스탬프 캐릭터라인의 길이
+STAMP_LENGTH = STRLENS(STAMP_STR)
+SIF !STAMP_LENGTH
+	THROW STAMP_STR가 지정되고 있지 않습니다
+SIF STAMP_COLOR
+	SETCOLOR STAMP_COLOR
+PRINTFORM %" " * (MAX_NUM - STAMP_NUM) * STAMP_LENGTH%
+PRINTFORM %STAMP_STR * STAMP_NUM%
+RESETCOLOR
+
+
+

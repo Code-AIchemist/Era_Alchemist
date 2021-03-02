@@ -1,0 +1,49 @@
+﻿;-------------------------------------------------
+;커스텀 바용색세트 함수 @BARCOLORSET
+;PRINT_COLORBAR의 ARG:3에 이용해, ARG;4에 RESULT를 사용한다
+;-------------------------------------------------
+@BARCOLORSET, ARGS
+#FUNCTION
+ ;LOCAL에 색을 대입
+SELECTCASE ARGS
+	CASE "빨강", "赤"
+		RESULT:1 = 0x502020
+		RETURNF 0xC07070
+	CASE "엷은 빨간색", "薄赤"
+		RESULT:1 = 0x803040
+		RETURNF 0xF07090
+	CASE "파랑", "青"
+		RESULT:1 = 0x202050
+		RETURNF 0x7070C0
+	CASE "초록", "緑"
+		RESULT:1 = 0x205020
+		RETURNF 0x70C070
+	CASE "유카리", "紫"
+		RESULT:1 = 0x502050
+		RETURNF 0xC070C0
+	CASE "황색", "黄色"
+		RESULT:1 = 0x505020
+		RETURNF 0xC0C070
+	CASE "청록색", "青緑"
+		RESULT:1 = 0x205050
+		RETURNF 0x70C0C0
+	CASE "흰색", "白"
+		RESULT:1 = 0x202020
+		RETURNF 0xC0C0C0
+	CASE "오렌지", "オレンジ"
+		RESULT:1 = 0x504010
+		RETURNF 0xFF8000
+	CASE "물색", "水色"
+		RESULT:1 = 0x203030
+		RETURNF 0x5090FF
+	CASE "EXTRA"
+		RESULT:1 = 0x505020
+		RETURNF 0xFFFFDD
+	CASE "EXTRA2"
+		RESULT:1 = 0x505020
+		RETURNF 0xFFFFDD
+	 ;흰색
+	 CASEELSE
+		RESULT:1 = 0x202020
+		RETURNF 0xCCFFCC
+ENDSELECT

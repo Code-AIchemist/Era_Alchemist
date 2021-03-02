@@ -1,0 +1,185 @@
+﻿;---------------------------------------
+;장착 효과 적용
+;---------------------------------------
+@EQUIP_HOTEL_EFFECT, EQUIP_ITEM
+
+;201~ 요리, 301~ 외관, 401~ 객실, 501~ 소문 아이템
+;  4  /  1  /  3  /  1
+;DECORATE_ITEM_LV
+;0~2:외관 / 3~5:객실 / 6~8:소문 / 9~11:요리
+;ABL : 103요리 / 101외관 / 102객실 / 104소문
+
+#DIM DYNAMIC COOK
+#DIM DYNAMIC EXTERIOR_BUILDING  ;건물외관
+#DIM DYNAMIC ROOM
+#DIM DYNAMIC RUMOR
+#DIM EQUIP_ITEM
+
+IF EQUIP_ITEM <= 0
+    PRINTW EQUIP_HOTEL_EFFECT 잘못호출
+    RETURN 0
+ENDIF
+
+COOK = 200
+EXTERIOR_BUILDING = 300
+ROOM = 400
+RUMOR = 500
+IF EQUIP_ITEM > COOK && EQUIP_ITEM <= COOK+100
+    IF EQUIP_ITEM-COOK == 1
+            장착_요리:0 = EQUIP_ITEM
+            DECORATE_ITEM_LV:10 = 1
+        ELSE
+            SELECTCASE (EQUIP_ITEM-(COOK+1))%3
+            CASE 0
+            ;디저트
+                ITEM:(장착_요리:2) = 0
+                장착_요리:2 = EQUIP_ITEM
+                DECORATE_ITEM_LV:9 = (EQUIP_ITEM-COOK)
+            CASE 1
+            ;주식
+                ITEM:(장착_요리:0) = 0
+                장착_요리:0 = EQUIP_ITEM
+                DECORATE_ITEM_LV:10 = (EQUIP_ITEM-COOK)
+            CASE 2
+            ;음료
+                ITEM:(장착_요리:1) = 0
+                장착_요리:1 = EQUIP_ITEM
+                DECORATE_ITEM_LV:11 = (EQUIP_ITEM-COOK)
+            ENDSELECT
+    ENDIF
+    ;DECORATE_ITEM_TIME - 음식은 지속시간 의미 없음. 식사 돈계산때 초기화
+
+ELSEIF EQUIP_ITEM > EXTERIOR_BUILDING && EQUIP_ITEM <= EXTERIOR_BUILDING+100
+    IF EQUIP_ITEM-EXTERIOR_BUILDING == 1
+            장착_외관:0 = EQUIP_ITEM
+            DECORATE_ITEM_LV:1 = 1
+            DECORATE_ITEM_TIME:1 = 1+DECORATE_ITEM_LV:1/5
+        ELSE
+            SELECTCASE (EQUIP_ITEM-(EXTERIOR_BUILDING+1))%3
+            CASE 0
+            ;
+                장착_외관:2 = EQUIP_ITEM
+                DECORATE_ITEM_LV:0 = (EQUIP_ITEM-EXTERIOR_BUILDING)
+                DECORATE_ITEM_TIME:0 = 1+(DECORATE_ITEM_LV:0)/5
+            CASE 1
+            ;벽지
+                장착_외관:0 = EQUIP_ITEM
+                DECORATE_ITEM_LV:1 = (EQUIP_ITEM-EXTERIOR_BUILDING)
+                DECORATE_ITEM_TIME:1 = 1+(DECORATE_ITEM_LV:1)/5
+            CASE 2
+            ;
+                장착_외관:1 = EQUIP_ITEM
+                DECORATE_ITEM_LV:2 = (EQUIP_ITEM-EXTERIOR_BUILDING)
+                DECORATE_ITEM_TIME:2 = 1+(DECORATE_ITEM_LV:2)/5
+            ENDSELECT
+    ENDIF
+
+ELSEIF EQUIP_ITEM > ROOM && EQUIP_ITEM <= ROOM+100
+    IF EQUIP_ITEM-ROOM == 1
+            장착_객실:0 = EQUIP_ITEM
+            DECORATE_ITEM_LV:4 = 1
+            DECORATE_ITEM_TIME:4 = 1+(DECORATE_ITEM_LV:4)/5
+        ELSE
+            SELECTCASE (EQUIP_ITEM-(ROOM+1))%3
+            CASE 0
+            ;
+                장착_객실:2 = EQUIP_ITEM
+                DECORATE_ITEM_LV:3 = (EQUIP_ITEM-ROOM)
+                DECORATE_ITEM_TIME:3 = 1+(DECORATE_ITEM_LV:3)/5
+            CASE 1
+            ;이불
+                장착_객실:0 = EQUIP_ITEM
+                DECORATE_ITEM_LV:4 = (EQUIP_ITEM-ROOM)
+                DECORATE_ITEM_TIME:4 = 1+(DECORATE_ITEM_LV:4)/5
+            CASE 2
+            ;
+                장착_객실:1 = EQUIP_ITEM
+                DECORATE_ITEM_LV:5 = (EQUIP_ITEM-ROOM)
+                DECORATE_ITEM_TIME:5 = 1+(DECORATE_ITEM_LV:5)/5
+            ENDSELECT
+    ENDIF
+
+ELSEIF EQUIP_ITEM > RUMOR && EQUIP_ITEM <= RUMOR+100
+    IF EQUIP_ITEM-RUMOR == 1
+            장착_소문:0 = EQUIP_ITEM
+            DECORATE_ITEM_LV:7 = 1
+            DECORATE_ITEM_TIME:7 = 1+(DECORATE_ITEM_LV:7)/5
+        ELSE
+            SELECTCASE (EQUIP_ITEM-(RUMOR+1))%3
+            CASE 0
+            ;
+                장착_소문:2 = EQUIP_ITEM
+                DECORATE_ITEM_LV:6 = (EQUIP_ITEM-RUMOR)
+                DECORATE_ITEM_TIME:6 = 1+(DECORATE_ITEM_LV:6)/5
+            CASE 1
+            ;게시판
+                장착_소문:0 = EQUIP_ITEM
+                DECORATE_ITEM_LV:7 = (EQUIP_ITEM-RUMOR)
+                DECORATE_ITEM_TIME:7 = 1+(DECORATE_ITEM_LV:7)/5
+            CASE 2
+            ;
+                장착_소문:1 = EQUIP_ITEM
+                DECORATE_ITEM_LV:8 = (EQUIP_ITEM-RUMOR)
+                DECORATE_ITEM_TIME:8 = 1+(DECORATE_ITEM_LV:8)/5
+            ENDSELECT
+    ENDIF
+
+ENDIF
+
+;---------------------------------------
+;장착해제 효과 적용
+;---------------------------------------
+@UNEQUIP_HOTEL_EFFECT, UNEQUIP_ITEM
+
+;201~ 요리, 301~ 외관, 401~ 객실, 501~ 소문 아이템\
+
+#DIM UNEQUIP_ITEM
+
+;DECORATE_ITEM_LV
+;0~2:외관 / 3~5:객실 / 6~8:소문 / 9~11:요리
+;ABL : 103요리 / 101외관 / 102객실 / 104소문
+SELECTCASE UNEQUIP_ITEM
+    CASE 9
+        ;요리 아이템들 초기화
+        장착_요리:2 = 0
+        DECORATE_ITEM_LV:UNEQUIP_ITEM = 0
+    CASE 10
+        ;요리 아이템들 초기화
+        장착_요리:0 = 0
+        DECORATE_ITEM_LV:UNEQUIP_ITEM = 0
+    CASE 11
+        ;요리 아이템들 초기화
+        장착_요리:1 = 0
+        DECORATE_ITEM_LV:UNEQUIP_ITEM = 0
+
+    CASE 0
+        장착_외관:2 = 0
+        DECORATE_ITEM_LV:UNEQUIP_ITEM = 0
+    CASE 1
+        장착_외관:0 = 0
+        DECORATE_ITEM_LV:UNEQUIP_ITEM = 0
+    CASE 2
+        장착_외관:1 = 0
+        DECORATE_ITEM_LV:UNEQUIP_ITEM = 0
+
+    CASE 3
+        장착_객실:2 = 0
+        DECORATE_ITEM_LV:UNEQUIP_ITEM = 0
+    CASE 4
+        장착_객실:0 = 0
+        DECORATE_ITEM_LV:UNEQUIP_ITEM = 0
+    CASE 5
+        장착_객실:1 = 0
+        DECORATE_ITEM_LV:UNEQUIP_ITEM = 0
+
+    CASE 6
+        장착_소문:2 = 0
+        DECORATE_ITEM_LV:UNEQUIP_ITEM = 0
+    CASE 7
+        장착_소문:0 = 0
+        DECORATE_ITEM_LV:UNEQUIP_ITEM = 0
+    CASE 8
+        장착_소문:1 = 0
+        DECORATE_ITEM_LV:UNEQUIP_ITEM = 0
+ENDSELECT
+

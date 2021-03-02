@@ -1,0 +1,2173 @@
+﻿;---------------------------------------
+;@ENTER_MY_HOTEL
+;여관에 타겟이 방문하였을 때.
+;CHARANUM = 등록된 캐릭터의 수
+;#DIM SAVEDATA BRAVE_HERO_FLAG
+;용사 출현 여부 플래그
+;---------------------------------------
+@ENTER_MY_HOTEL
+#DIM DYNAMIC DICE
+;랜덤돌려서 구한 값
+
+;캐릭터가 많을 경우 생성 중단
+IF CHARANUM >= 98
+    PRINTW 캐릭터 수 초과 오류
+    RETURN 0
+ENDIF
+
+PRINTW 조교하기 적당한 년이 들어왔다!
+;-----네임드 캐릭터-----
+
+
+
+;-----랜덤 캐릭터-----
+;E = CHARANUM - 1 = 만들어진 캐릭터의 번호
+IF DAY > 50 && 여관LV > 10 && RAND:20 == 0
+;용사 등장
+    ADDCHARA 11
+    E = CHARANUM - 1
+    CALL RAND_CHARA_MAKE, 11
+ELSEIF RAND:20 == 0 && BRAVE_HERO_FLAG == 1
+;성녀 등장
+    ADDCHARA 12
+    E = CHARANUM - 1
+    CALL RAND_CHARA_MAKE, 12
+ELSE
+;일반 타겟 등장
+    DICE = (RAND:6)+1
+    ADDCHARA DICE
+    E = CHARANUM - 1
+    CALL RAND_CHARA_MAKE, DICE
+ENDIF
+
+
+;---------------------------------------
+;@CHARA_MAKE, CHARA
+;네임드 캐릭터 만들기
+;---------------------------------------
+@CHARA_MAKE, CHARA
+#DIM DYNAMIC CHARA
+
+ADDCHARA CHARA
+IF FLAG:28 == 1
+;네임드 강제처녀
+    TALENT:(CHARANUM - 1):1 = 0
+    TALENT:(CHARANUM - 1):2 = 0
+ENDIF
+;---------------------------------------
+;@RAND_CHARA_MAKE, CHARA_JOB
+;랜덤 캐릭터 만들기
+;CALL GIVE_RAND_NUM, RAND_MIN, RAND_MAX
+;주어진 최소 초과, 최대 이하에서 랜덤 값 구하기.
+;#DIM SAVEDATA GAME_MODE_LV
+;게임 난이도 LV
+;#DIM SAVEDATA BRAVE_HERO_FLAG
+;용사 출현 여부 플래그
+;---------------------------------------
+@RAND_CHARA_MAKE, CHARA_JOB
+#DIM DYNAMIC CHARA_XX
+;캐릭터 번호. CHARAXX.csv와 같음
+#DIM DYNAMIC MAKE_CHARA_NUM
+;만들어진 캐릭터의 번호
+#DIM DYNAMIC DICE
+;랜덤돌려서 구한 값
+#DIM DYNAMIC CHARA_JOB
+;캐릭터 전투 직업
+MAKE_CHARA_NUM = E
+
+$CHARA_REROLL
+
+;---- 초기설정 ----
+;****************************
+CFLAG:MAKE_CHARA_NUM:5 = 1000
+;시작 소지금 설정 -> 직업과 레벨에 따라 이후 변경
+CFLAG:MAKE_CHARA_NUM:1 = 0
+CFLAG:MAKE_CHARA_NUM:2 = 0
+CFLAG:MAKE_CHARA_NUM:3 = 0
+;호감도,신뢰도,욕구불만도
+CFLAG:MAKE_CHARA_NUM:31 = 0
+;관계 (BIT 0=낯선 1=지인 2=친한 3=연모 4=연인 5=아내)
+
+
+IF RAND:3 == 0
+	TALENT:MAKE_CHARA_NUM:4 = 0
+ELSE
+	TALENT:MAKE_CHARA_NUM:4 = 1
+ENDIF
+;키스경험(0=YES, 1=NO) 비처녀 키스경험YES로 됨.
+
+DICE = (RAND:10)+1
+IF FLAG:26 == 0
+    TALENT:MAKE_CHARA_NUM:1 = 1
+	TALENT:MAKE_CHARA_NUM:4 = 1
+ELSEIF FLAG:26 <= DICE
+    TALENT:MAKE_CHARA_NUM:1 = 0
+	;처녀
+ELSE
+    TALENT:MAKE_CHARA_NUM:1 = 1
+	TALENT:MAKE_CHARA_NUM:4 = 1
+ENDIF
+;처녀 상태(0=YES, 1=NO)
+
+DICE = (RAND:10)+1
+IF FLAG:27 == 0
+    TALENT:MAKE_CHARA_NUM:2 = 1
+	TALENT:MAKE_CHARA_NUM:4 = 1
+ELSEIF FLAG:27 <= DICE
+    TALENT:MAKE_CHARA_NUM:2 = 0
+	;A처녀
+ELSE
+    TALENT:MAKE_CHARA_NUM:2 = 1
+	TALENT:MAKE_CHARA_NUM:4 = 1
+ENDIF
+;A처녀 상태(0=YES, 1=NO)
+
+IF TALENT:MAKE_CHARA_NUM:1 == 0 && RAND:10 != 0
+	TALENT:MAKE_CHARA_NUM:2 = 0
+ENDIF
+;V처녀면 A처녀일 확률도 매우 높음.
+
+CFLAG:MAKE_CHARA_NUM:341 = 0
+CFLAG:MAKE_CHARA_NUM:342 = 0
+CFLAG:MAKE_CHARA_NUM:343 = 0
+CFLAG:MAKE_CHARA_NUM:344 = 0
+;의뢰
+TALENT:MAKE_CHARA_NUM:801 = 1
+;계급 - 평민
+TALENT:MAKE_CHARA_NUM:806 = 1
+;경력 - 초보자
+TALENT:MAKE_CHARA_NUM:601 = 1
+;종족 - 인간
+CFLAG:MAKE_CHARA_NUM:4 = 1
+EXP:MAKE_CHARA_NUM:151 = 0
+;직업레벨, 직업 경험치 설정
+CFLAG:MAKE_CHARA_NUM:600 = (RAND:7)+1
+;생리주기
+;****************************
+
+;---- 직업 확인 ----
+SELECTCASE CHARA_JOB
+    CASE 1
+        CHARA_JOB = 701
+    CASE 2
+        CHARA_JOB = 702
+    CASE 3
+        CHARA_JOB = 703
+    CASE 4
+        CHARA_JOB = 704
+    CASE 5
+        CHARA_JOB = 705
+    CASE 6
+        CHARA_JOB = 706
+    CASE 11
+        CHARA_JOB = 752
+    CASE 12
+        CHARA_JOB = 753
+ENDSELECT
+;--------------------
+TALENT:MAKE_CHARA_NUM:CHARA_JOB = 1
+;직업 확정
+CFLAG:MAKE_CHARA_NUM:13 = CHARA_JOB
+;직업번호 기억하기.
+
+;-----TALENT 설정-----
+CALL SET_TALENT, MAKE_CHARA_NUM
+
+;-----신의가호:5-----
+IF RAND:20 == 0
+    ;DICE = 1 + RAND:5
+    ;CFLAG:MAKE_CHARA_NUM:7 = DICE
+	CFLAG:MAKE_CHARA_NUM:7 = 1
+ENDIF
+
+IF CFLAG:MAKE_CHARA_NUM:7 != 0
+    IF CFLAG:MAKE_CHARA_NUM:7 == 1
+    ;순결의 가호
+        TALENT:MAKE_CHARA_NUM:1 = 0
+        ;처녀
+		CFLAG:MAKE_CHARA_NUM:22 = 1
+		;순결봉인 ON
+    ENDIF
+ENDIF
+
+;-----계급 설정-----
+DICE = RAND:30
+IF DICE < 5 && TALENT:MAKE_CHARA_NUM:753 == 0 && TALENT:MAKE_CHARA_NUM:752 == 0
+	TALENT:MAKE_CHARA_NUM:801 = 0
+	;노예
+ELSEIF DICE == 29
+	IF RAND:20 == 0
+		TALENT:MAKE_CHARA_NUM:801 = 3
+		;왕족
+	ELSE
+		TALENT:MAKE_CHARA_NUM:801 = 2
+		;귀족
+	ENDIF
+ENDIF
+
+;-----경력 설정-----
+IF DAY < 50
+	DICE = RAND:3
+	TALENT:MAKE_CHARA_NUM:806 = DICE+1
+	;초보자 ~ E급 용병
+ELSE
+	IF 30 - (여관LV/10) < 10
+		DICE = RAND:10
+	ELSE
+		DICE = RAND:(30-(여관LV/10))
+	ENDIF
+
+	IF DICE == 0
+		TALENT:MAKE_CHARA_NUM:806 = 8
+		;S급
+	ELSEIF DICE >= 1 && DICE < 3
+		TALENT:MAKE_CHARA_NUM:806 = 7
+		;A급
+	ELSEIF DICE >= 3 && DICE < 6
+		TALENT:MAKE_CHARA_NUM:806 = 6
+		;B급
+	ELSE
+		TALENT:MAKE_CHARA_NUM:806 = (DICE%5) + 1
+		;늅~C급
+	ENDIF
+ENDIF
+
+;-----직업LV 설정-----
+;랜덤성을 위해 직업LV 한자리 수 더하기
+DICE = (RAND:10)
+IF DICE < 8
+;0~5를 더함
+    CFLAG:MAKE_CHARA_NUM:4 += RAND:6
+ELSE
+;6~10을 더함
+    CALL GIVE_RAND_NUM, 5, 10
+    CFLAG:MAKE_CHARA_NUM:4 += RESULT
+ENDIF
+
+;CFLAG:MAKE_CHARA_NUM:4 += GAME_MODE_LV * 10
+;난이도 상승에 따른 타겟의 직업LV 상승
+
+CFLAG:MAKE_CHARA_NUM:4 += 10 * ((TALENT:MAKE_CHARA_NUM:806)-1)
+;경력에 따른 직업LV 상승
+
+;-----소지금 설정-----
+SIF TALENT:MAKE_CHARA_NUM:752 == 1 || TALENT:MAKE_CHARA_NUM:753 == 1
+    CFLAG:MAKE_CHARA_NUM:5 += 20000
+CFLAG:MAKE_CHARA_NUM:5 += ((CFLAG:MAKE_CHARA_NUM:4) - 1) * 1000
+POWER LOCAL, 10, TALENT:MAKE_CHARA_NUM:806
+;10의 X승을 LOCAL에 저장.
+CFLAG:MAKE_CHARA_NUM:5 += RAND:LOCAL
+;랜덤 값을 소지금에 추가.
+CFLAG:MAKE_CHARA_NUM:5 += 2000 * ((TALENT:MAKE_CHARA_NUM:806)-1)
+;경력에 따른 기본급 추가.
+
+;-----레벨에 따른 능력치 올리기-----
+IF CFLAG:MAKE_CHARA_NUM:4 > 1
+    REPEAT (CFLAG:MAKE_CHARA_NUM:4) - 1
+        CALL JOB_LEVEL_UP, MAKE_CHARA_NUM, CHARA_JOB
+    REND
+ENDIF
+
+;-----체형 조정-----
+CALL CHAR_SIZE_GENERATE, MAKE_CHARA_NUM
+
+IF RESULT:0 < 20 && RAND:3 != 0
+	RESULT:0 += RAND:10
+ENDIF
+;나이가 어리다면 일정확률로 상승.
+REPEAT 6
+	CFLAG:MAKE_CHARA_NUM:(COUNT+31) = RESULT:COUNT
+REND
+;체형 결과 값 대입.
+
+;-----어색한 TALENT 수정-----
+CALL SET_TALENT_2, MAKE_CHARA_NUM
+
+;-----EXP설정-----
+CALL SET_EXP, MAKE_CHARA_NUM
+
+;-----ABL설정-----
+CALL SET_ABL, MAKE_CHARA_NUM
+
+;랜덤 네임 지정하기
+CALL RANDOM_NAME, 0, MAKE_CHARA_NUM
+
+;-----캐릭터 리롤묻기-----
+CALL SHOW_TARGET_STATE, MAKE_CHARA_NUM, -1
+
+WHILE 1
+    IF RESULT == 1
+    ;리롤!
+        IF DAY > 50 && 여관LV > 10 && RAND:20 == 0
+        ;용사OR성녀 일때
+            DICE = RAND:2
+            IF DICE == 0
+                CHARA_JOB = 11
+            ELSEIF DICE == 1 && BRAVE_HERO_FLAG == 1
+                CHARA_JOB = 12
+            ELSE
+                CHARA_JOB = 11
+            ENDIF
+        ELSE
+        ;일반 직업일 때
+            CHARA_JOB = 1 + RAND:6
+        ENDIF
+        
+        VARSET TALENT:MAKE_CHARA_NUM:0, 0
+        ;TALENT 초기화
+		VARSET CFLAG:MAKE_CHARA_NUM:0, 0
+		;CFLAG 초기화
+		VARSET ABL:MAKE_CHARA_NUM:0, 0
+		;AVL 초기화
+		VARSET EXP:MAKE_CHARA_NUM:0, 0
+		;EXP 초기화
+		VARSET PALAM:MAKE_CHARA_NUM:0, 0
+		VARSET JUEL:MAKE_CHARA_NUM:0, 0
+		;PALAM, JUEL 초기화
+		VARSET BASE:MAKE_CHARA_NUM:0, 0
+		VARSET MAXBASE:MAKE_CHARA_NUM:0, 0
+		;BASE 초기화
+
+		SELECTCASE CHARA_JOB
+			CASE 1
+			;전사
+				MAXBASE:MAKE_CHARA_NUM:0 = 700
+				BASE:MAKE_CHARA_NUM:0 = 700
+				MAXBASE:MAKE_CHARA_NUM:1 = 300
+				BASE:MAKE_CHARA_NUM:1 = 300
+				ABL:MAKE_CHARA_NUM:91 = 15
+				ABL:MAKE_CHARA_NUM:92 = 15
+				ABL:MAKE_CHARA_NUM:93 = 5
+				CFLAG:MAKE_CHARA_NUM:99 = 1
+			
+			CASE 2
+			;마법사
+				MAXBASE:MAKE_CHARA_NUM:0 = 300
+				BASE:MAKE_CHARA_NUM:0 = 300
+				MAXBASE:MAKE_CHARA_NUM:1 = 700
+				BASE:MAKE_CHARA_NUM:1 = 700
+				ABL:MAKE_CHARA_NUM:91 = 5
+				ABL:MAKE_CHARA_NUM:92 = 5
+				ABL:MAKE_CHARA_NUM:93 = 20
+				CFLAG:MAKE_CHARA_NUM:99 = 1
+			CASE 3
+			;사제
+				MAXBASE:MAKE_CHARA_NUM:0 = 300
+				BASE:MAKE_CHARA_NUM:0 = 300
+				MAXBASE:MAKE_CHARA_NUM:1 = 700
+				BASE:MAKE_CHARA_NUM:1 = 700
+				ABL:MAKE_CHARA_NUM:91 = 5
+				ABL:MAKE_CHARA_NUM:92 = 5
+				ABL:MAKE_CHARA_NUM:93 = 15
+				CFLAG:MAKE_CHARA_NUM:99 = 1
+			CASE 4
+			;도적
+				MAXBASE:MAKE_CHARA_NUM:0 = 500
+				BASE:MAKE_CHARA_NUM:0 = 500
+				MAXBASE:MAKE_CHARA_NUM:1 = 400
+				BASE:MAKE_CHARA_NUM:1 = 400
+				ABL:MAKE_CHARA_NUM:91 = 20
+				ABL:MAKE_CHARA_NUM:92 = 5
+				ABL:MAKE_CHARA_NUM:93 = 5
+				CFLAG:MAKE_CHARA_NUM:99 = 1
+			CASE 5
+			;무녀
+				MAXBASE:MAKE_CHARA_NUM:0 = 300
+				BASE:MAKE_CHARA_NUM:0 = 300
+				MAXBASE:MAKE_CHARA_NUM:1 = 700
+				BASE:MAKE_CHARA_NUM:1 = 700
+				ABL:MAKE_CHARA_NUM:91 = 10
+				ABL:MAKE_CHARA_NUM:92 = 10
+				ABL:MAKE_CHARA_NUM:93 = 15
+				CFLAG:MAKE_CHARA_NUM:99 = 1
+			CASE 6
+			;궁수
+				MAXBASE:MAKE_CHARA_NUM:0 = 400
+				BASE:MAKE_CHARA_NUM:0 = 400
+				MAXBASE:MAKE_CHARA_NUM:1 = 600
+				BASE:MAKE_CHARA_NUM:1 = 600
+				ABL:MAKE_CHARA_NUM:91 = 15
+				ABL:MAKE_CHARA_NUM:92 = 5
+				ABL:MAKE_CHARA_NUM:93 = 10
+				CFLAG:MAKE_CHARA_NUM:99 = 1
+			CASE 11
+			;용사
+				MAXBASE:MAKE_CHARA_NUM:0 = 1000
+				BASE:MAKE_CHARA_NUM:0 = 1000
+				MAXBASE:MAKE_CHARA_NUM:1 = 1000
+				BASE:MAKE_CHARA_NUM:1 = 1000
+				ABL:MAKE_CHARA_NUM:91 = 30
+				ABL:MAKE_CHARA_NUM:92 = 30
+				ABL:MAKE_CHARA_NUM:93 = 30
+				CFLAG:MAKE_CHARA_NUM:99 = 1
+			CASE 13
+			;성녀
+				MAXBASE:MAKE_CHARA_NUM:0 = 700
+				BASE:MAKE_CHARA_NUM:0 = 700
+				MAXBASE:MAKE_CHARA_NUM:1 = 1500
+				BASE:MAKE_CHARA_NUM:1 = 1500
+				ABL:MAKE_CHARA_NUM:91 = 15
+				ABL:MAKE_CHARA_NUM:92 = 15
+				ABL:MAKE_CHARA_NUM:93 = 45
+				CFLAG:MAKE_CHARA_NUM:99 = 1
+		ENDSELECT
+		;초기화 된 직업의 기초 능력치 다시 부여.
+		;직업 추가할 때 반드시 수정할 것. !수정JOB
+        
+        GOTO CHARA_REROLL
+        BREAK
+    ELSEIF RESULT == 0
+    ;확정
+        SIF TALENT:MAKE_CHARA_NUM:752 == 1
+        ;용사출현 플래그
+            BRAVE_HERO_FLAG = 1
+        PRINTFORMW %조사처리(CALLNAME:MAKE_CHARA_NUM,"가")% 여관에 체크인 하였습니다!. 한동안 이곳에 머물것으로 보입니다.
+        BREAK
+    ELSEIF RESULT == 99
+    ;내쫓기
+        PRINTFORMW %조사처리(NAME:MAKE_CHARA_NUM,"는")% 씨근덕거리며 여관에서 나왔다.
+        DELCHARA MAKE_CHARA_NUM
+        BREAK
+    ELSE
+    ;잘못입력
+        INPUT
+        CLEARLINE 1
+    ENDIF
+WEND
+
+
+;---------------------------------------
+;@SET_TALENT, CHARA_NUM
+;TALENT 설정하는 함수
+;---------------------------------------
+@SET_TALENT, CHARA_NUM
+#DIM DYNAMIC CHARA_NUM
+;캐릭터ID
+#DIM DYNAMIC STORE_TARGET
+;타겟 저장
+#DIM DYNAMIC DICE,3
+;주사위
+
+STORE_TARGET = TARGET
+;타겟 저장
+TARGET = CHARA_NUM
+
+;성격 - 21~25
+;성격1
+DICE = 21 + RAND:5
+IF RAND:2 == 0
+    TALENT:DICE = -1
+ELSE
+    TALENT:DICE = 1
+ENDIF
+;성격2 - 50% 안나올수도 있음. 5%확률로 그대로 거나, 5%확률로 반전됨.
+DICE = 21 + RAND:10
+IF DICE <= 21 && DICE < 26
+    IF RAND:2 == 0
+        TALENT:DICE = -1
+    ELSE
+        TALENT:DICE = 1
+    ENDIF
+ENDIF
+
+;성애의 관심 - 51~58
+REPEAT 8
+    DICE = RAND:10
+    IF DICE <= 0 && DICE < 3
+        IF (COUNT == 0 || COUNT == 1) && RAND:2 == 0
+            TALENT:(COUNT+51) = -1
+        ELSE
+            TALENT:(COUNT+51) = 1
+        ENDIF
+    ENDIF
+REND
+
+;소녀 감성 - 61~64
+REPEAT 4
+    DICE = RAND:10
+    IF DICE <= 0 && DICE < 3
+        IF (COUNT == 0 || COUNT == 1 || COUNT == 3) && RAND:2 == 0
+            TALENT:(COUNT+61) = -1
+        ELSE
+            TALENT:(COUNT+61) = 1
+        ENDIF
+    ENDIF
+REND
+
+;체질 - 71~74
+REPEAT 4
+    DICE = RAND:10
+    IF DICE <= 0 && DICE < 2
+        IF (COUNT == 0 || COUNT == 1 || COUNT == 2) && RAND:2 == 0
+            TALENT:(COUNT+71) = -1
+        ELSE
+            TALENT:(COUNT+71) = 1
+        ENDIF
+    ENDIF
+REND
+
+;기술 - 81~83
+REPEAT 3
+    DICE = RAND:10
+    IF DICE <= 0 && DICE < 2
+        IF (COUNT == 0) && RAND:2 == 0
+            TALENT:(COUNT+81) = -1
+        ELSE
+            TALENT:(COUNT+81) = 1
+        ENDIF
+    ENDIF
+REND
+
+;결벽도 - 91~93
+REPEAT 3
+    DICE = RAND:10
+    IF DICE <= 0 && DICE < 2
+        IF COUNT == 1
+        ;92,악취내성
+            DICE:1 = RAND:12
+            IF DICE:1 >= 0 && DICE:1 < 2
+                TALENT:(COUNT+91) = -2
+            ELSEIF DICE:1 >= 2 && DICE:1 < 6
+                TALENT:(COUNT+91) = -1
+            ELSEIF DICE:1 >= 6 && DICE:1 < 10
+                TALENT:(COUNT+91) = 1
+            ELSE
+                TALENT:(COUNT+91) = 2
+			ENDIF
+        ELSE
+            TALENT:(COUNT+91) = 1
+        ENDIF
+    ENDIF
+REND
+
+;정직도A - 101~102
+REPEAT 2
+    DICE = RAND:10
+    IF DICE <= 0 && DICE < 1
+        IF (COUNT == 0) && RAND:2 == 0
+            TALENT:(COUNT+101) = -1
+        ELSE
+            TALENT:(COUNT+101) = 1
+        ENDIF
+    ENDIF
+REND
+
+;정직도B - 104~108 (1개 제한)
+DICE = RAND:20
+IF DICE <= 0 && DICE < 1
+    TALENT:((RAND:5)+104) = 1
+ENDIF
+
+;성애성 - 111~118 (2개 제한)
+REPEAT 2
+    DICE = RAND:10
+    IF DICE <= 0 && DICE < 1
+        DICE:1 = RAND:8
+        IF DICE:1 == 1
+        ;112,성별기호
+            DICE:1 = RAND:3
+            IF DICE:1 == 0
+                TALENT:(DICE:1+111) = -1
+            ELSE
+                ;DICE:1 == 1 || 2
+                TALENT:(DICE:1+111) = DICE:1
+            ENDIF
+        ELSE
+            TALENT:(DICE:1+111) = 1
+        ENDIF
+    ENDIF
+REND
+
+;매료 - 121~123
+REPEAT 3
+    DICE = RAND:20
+    IF DICE <= 0 && DICE < 1
+        TALENT:(COUNT+121) = 1
+    ENDIF
+REND
+
+;몸 특징A - 131~132
+;131,체형,;-3=난쟁이 -2=유아 체형 -1=작은 체형 1=장신 2=거구 3=거인
+;132,가슴사이즈,;-2=절벽 -1 = 작은 가슴 0=미유 1=거유 2=폭유 3=초유
+REPEAT 2
+    IF RAND:3 == 0 && COUNT == 0
+    ;66퍼 확률로 평범
+    ;체형 일때, -3:난쟁이, 3:거인 -> 종족특수
+    ;1, 3, 3, 1
+        DICE = RAND:8
+        IF DICE == 0
+            TALENT:(COUNT+131) = -2
+        ELSEIF DICE >= 1 && DICE < 4
+            TALENT:(COUNT+131) = -1
+        ELSEIF DICE >= 4 && DICE < 7
+            TALENT:(COUNT+131) = 1
+        ELSE
+            TALENT:(COUNT+131) = 2
+        ENDIF
+    ENDIF
+	IF RAND:3 == 0 && COUNT == 1
+        ;가슴사이즈 일때 66퍼 확률로 평범.
+        ;1, 4, 4, 2, 1
+        DICE = RAND:12
+        IF DICE == 0
+            TALENT:(COUNT+131) = -2
+        ELSEIF DICE >= 1 && DICE < 5
+            TALENT:(COUNT+131) = -1
+        ELSEIF DICE >= 5 && DICE < 9
+            TALENT:(COUNT+131) = 1
+        ELSEIF DICE >= 9 && DICE < 11
+            TALENT:(COUNT+131) = 2
+        ELSE
+            TALENT:(COUNT+131) = 3
+        ENDIF
+    ENDIF
+REND
+
+;몸특징B - 133~137(3개 제한)
+REPEAT 3
+    DICE = RAND:10
+    IF DICE <= 0 && DICE < 4
+        IF RAND:3 == 0
+            TALENT:((RAND:5)+133) = -1
+        ELSE
+            TALENT:((RAND:5)+133) = 1
+        ENDIF
+    ENDIF
+REND
+
+;몸특징C - 138
+DICE = RAND:10
+IF DICE <= 0 && DICE < 3
+    TALENT:(COUNT+138) = 1
+ENDIF
+
+;몸특징D - 140,141
+DICE = RAND:12
+IF DICE == 0
+	TALENT:140 = 1
+	ABL:91 += 5
+	ABL:92 += 5
+	;근육질
+ELSEIF DICE == 1
+	TALENT:141 = 1
+	ABL:91 -= 5
+	ABL:92 -= 5
+	ABL:93 += 5
+	;허약
+ENDIF
+
+;살집 - 142
+DICE = RAND:10
+IF DICE == 0
+	CALL GIVE_RAND_NUM, 100, 400
+	TALENT:142 = RESULT
+ELSE
+	TALENT:142 = 1
+ENDIF
+
+;특수A - 151~152
+REPEAT 2
+    DICE = RAND:10
+    IF DICE <= 0 && DICE < 3
+        IF RAND:2 == 0
+            TALENT:(COUNT+151) = -1
+        ELSE
+            TALENT:(COUNT+151) = 1
+        ENDIF
+    ENDIF
+REND
+
+;특수B - 153~156
+REPEAT 4
+    DICE = RAND:10
+    IF DICE == 0
+        TALENT:(COUNT+153) = 1
+    ENDIF
+REND
+
+;특수C_조건부+레어 - 171~176
+;-171,즉각함락,;커맨드를 실행하기 쉽다. 조교시에 ABL가 오르는 것이 있다
+SIF RAND:50 == 0
+    TALENT:(171) = 1
+;-172,약독면역,;강한NPC의 상징. 미약,이뇨제,최면약 등의 약을 사용하는 커맨드 실행 불가.
+SIF RAND:50 == 0
+    TALENT:(172) = 1
+;-173,모유체질,;분유가능
+SIF RAND:5 == 0 && TALENT:(132) > 0
+    TALENT:(173) = 1
+;-174,자위안함,;자위 커맨드 거부
+SIF RAND:30 == 0
+    TALENT:(174) = 1
+;-175,봉사안함,;봉사 커맨드 거부
+SIF RAND:30 == 0
+    TALENT:(175) = 1
+;-176,멘탈약함,; 유아퇴행하기 쉬움
+SIF RAND:50 == 0
+    TALENT:(176) = 1
+
+;-특수D_성벽 - 196~199 (1개 제한)
+SIF RAND:20 == 0
+    TALENT:((RAND:4)+196) = 1
+
+;특수E - 221~226(223X, 225X)
+SIF RAND:20 == 0
+    TALENT:(221) = 1
+SIF RAND:20 == 0
+    TALENT:(222) = 1
+SIF RAND:20 == 0
+    TALENT:(224) = 1
+SIF RAND:20 == 0
+    TALENT:(226) = 1
+
+;특수F - 236~241 (대사관련 특성) - 1개제한. 조건-무
+TALENT:((RAND:6)+236) = 1
+
+;영업관련 - 261~264
+SIF RAND:20 == 0
+	TALENT:261 = 1
+SIF RAND:20 == 0
+	TALENT:262 = 1
+SIF RAND:20 == 0
+	TALENT:263 = 1
+SIF RAND:15 == 0
+	TALENT:264 = 1
+
+;-----(용사,성녀X)특수직업 출현-----
+;FLAG:14 = 소문LV
+;용사후보 출현 - 조건:직업이 용사나 성녀가 아닌경우.
+IF FLAG:14 > 20
+    IF RAND:20 == 0 && TALENT:752 != 1 && TALENT:753 != 1
+        TALENT:751 = 1
+        CFLAG:4 += 10
+    ENDIF
+ENDIF
+
+;용사일행 출현 - 조건:용사가 있을경우 + 용사후보가 아닐경우 + 용사나 성녀가 아닌 경우.
+IF RAND:20 == 0 && BRAVE_HERO_FLAG == 1 && TALENT:751 != 1 && TALENT:752 != 1 && TALENT:753 != 1
+    TALENT:754 = 1
+    CFLAG:4 += 5
+ENDIF
+
+;전-용사일행 출현(렙추가보너스) - 조건:용사후보가 아닐경우 + 용사나 성녀가 아닐 경우 + 용사일행이 아닐 경우
+IF RAND:20 == 0 && TALENT:751 != 1 && TALENT:752 != 1 && TALENT:753 != 1 && TALENT:754 != 1
+    TALENT:755 = 1
+    CFLAG:4 += 15
+ENDIF
+
+;-----특수직업 TALENT 설정-----
+IF TALENT:752 == 1 || TALENT:753 == 1
+;용사나 성녀
+    CFLAG:8 = 0
+    ;종족 = 인간
+    TALENT:158 = 1
+    ;약독면역
+    TALENT:154 = 1
+    ;인기인
+    IF TALENT:752 == 1
+    ;용사
+        TALENT:151 = 1
+        ;회복빠름
+    ELSE
+    ;성녀
+        TALENT:156 = 1
+        ;치료
+        TALENT:1 = 0
+        ;처녀
+        TALENT:2 = 0
+        ;A처녀
+		TALENT:261 = 0
+		;창부 특성 삭제.
+    ENDIF
+ENDIF
+
+TARGET = STORE_TARGET
+;타겟 복구
+
+
+;---------------------------------------
+;@SET_TALENT_2, CHARA_NUM
+;어색한 TALENT 수정하는 함수
+;---------------------------------------
+@SET_TALENT_2, CHARA_NUM
+#DIM DYNAMIC CHARA_NUM
+;캐릭터ID
+#DIM DYNAMIC STORE_TARGET
+;타겟 저장
+
+STORE_TARGET = TARGET
+;타겟 저장
+TARGET = CHARA_NUM
+
+;나이가 13세 이하일 경우
+IF CFLAG:31 <= 13
+
+	SIF RAND:10 < 8
+		TALENT:58 = 1
+	SIF RAND:10 < 8
+		TALENT:202 = 1
+	;높은 확률로 [무지]나 [미숙]추가
+	
+	TALENT:226 == 0
+	;[유부녀] 삭제.
+ENDIF
+
+;나이가 35세 이상일 경우 높은 확률로 [유부녀]
+SIF CFLAG:31 >= 35 && RAND:3 != 0
+	TALENT:226 == 1
+
+;[유아 체형]이거나 [난쟁이]일 경우 절반 확률로 [절벽]
+SIF TALENT:131 <= -2 && RAND:2 == 0
+	TALENT:132 = -2
+
+;체형이 [난쟁이]일 경우 [미숙]으로
+SIF TALENT:131 == -3
+	TALENT:202 = 1
+
+;낙관적/비관적 과 [감정부족]이 같이 있을경우
+IF (TALENT:52 != 0) && TALENT:53 == 1
+    IF RAND:2 == 0
+        TALENT:52 = 0
+    ELSE
+        TALENT:53 = 0
+	ENDIF
+ENDIF
+
+;[무지]나 [미숙]일 경우
+IF TALENT:58 == 1 || TALENT:202 == 1
+	TALENT:1 = 0
+	TALENT:2 = 0
+	TALENT:4 = 0
+	;처녀로
+
+	TALENT:261 = 0
+	TALENT:264 = 0
+	;[창부], [방중술] 삭제
+ENDIF
+
+;[유부녀]일 경우
+IF TALENT:226 == 1
+	IF TALENT:132 != 3 && RAND:3 == 0
+		TALENT:132 += 1
+	ENDIF
+	;확률로 가슴크기 증가 보너스
+	TALENT:196 = 0
+	TALENT:197 = 0
+	TALENT:1 = 1
+	;[마더콘],[파더콘],[처녀] 삭제.
+
+	IF RAND:2 == 0
+		TALENT:221 = 0
+		;[애같음] 삭제
+		TALENT:224 = 1
+		;[모성] 추가
+	ENDIF
+ENDIF
+
+TARGET = STORE_TARGET
+;타겟 복구
+
+;---------------------------------------
+;@SET_ABL, CHARA_NUM
+;EXP 설정하는 함수
+;---------------------------------------
+@SET_ABL, CHARA_NUM
+#DIM DYNAMIC CHARA_NUM
+;캐릭터ID
+#DIM DYNAMIC DICE, 3
+;주사위
+#DIM DYNAMIC STORE_TARGET
+;타겟 저장
+
+STORE_TARGET = TARGET
+;타겟 저장
+TARGET = CHARA_NUM
+
+REPEAT 3
+	DICE = RAND:10
+	SIF DICE == 0
+		ABL:(RAND:5) += 1
+REND
+;쾌감계
+
+DICE = RAND:10
+SIF DICE == 0
+	ABL:10 += (RAND:3)
+;기교
+
+REPEAT 10
+	DICE = RAND:20
+	SIF DICE == 0
+		ABL:(71 + RAND:6) += 1
+REND
+;기능
+
+IF TALENT:113 == 1
+	DICE = RAND:5
+	SIF DICE == 0
+		ABL:31 += RAND:4
+ENDIF
+;새드끼
+
+IF TALENT:114 == 1
+	DICE = RAND:5
+	SIF DICE == 0
+		ABL:32 += RAND:4
+ENDIF
+;마조끼
+
+TARGET = STORE_TARGET
+;타겟 복구
+
+;---------------------------------------
+;@SET_EXP, CHARA_NUM
+;EXP 설정하는 함수
+;---------------------------------------
+@SET_EXP, CHARA_NUM
+#DIM DYNAMIC CHARA_NUM
+;캐릭터ID
+#DIM DYNAMIC DICE, 3
+;주사위
+#DIM DYNAMIC STORE_TARGET
+;타겟 저장
+
+STORE_TARGET = TARGET
+;타겟 저장
+TARGET = CHARA_NUM
+
+IF TALENT:261 == 1
+	LOCAL = 50
+ELSE
+	LOCAL = 20
+ENDIF
+
+;---행동경험---
+SIF TALENT:1 != 0
+	EXP:20 = 1 + RAND:LOCAL
+;V성교
+SIF TALENT:2 != 0
+	EXP:21 = 1 + RAND:LOCAL
+;A성교
+EXP:29 = EXP:20 + EXP:21
+;삽입경험
+
+SIF TALENT:91 == 1
+	EXP:22 = RAND:20
+;자위경험
+
+IF TALENT:1 != 0 || TALENT:2 != 0
+	DICE = RAND:4
+ELSE
+	DICE = RAND:20
+	;둘다 처녀일 경우
+ENDIF
+IF DICE == 0
+	REPEAT 3
+		EXP:(COUNT+24) = RAND:(LOCAL/2)
+	REND
+ENDIF
+;봉사경험
+
+;---기타 경험---
+REPEAT 5
+	SIF RAND:4 == 0
+		EXP:(COUNT+71) = RAND:20
+REND
+REPEAT 5
+	SIF RAND:4 == 0
+		EXP:(COUNT+81) = RAND:20
+REND
+;기본값 설정
+
+
+IF RAND:3 == 0 && TALENT:226 == 1
+	EXP:81 = RAND:5
+ELSE
+	EXP:81 = 0
+ENDIF
+;출산경험
+SIF TALENT:806 != 1
+	EXP:74 = TALENT:806 * RAND:20
+;전투경험
+
+;---절정 경험---
+SIF EXP:29 > 0
+	EXP:10 = RAND:(EXP:29)
+IF TALENT:1 != 0 && TALENT:2 != 0
+	REPEAT (EXP:10)
+		DICE = RAND:10
+		DICE:1 = RAND:3
+		IF DICE:1 <= (EXP:10) - 1 - COUNT
+			EXP:(101+DICE) += DICE:1
+			COUNT += DICE:1
+		ELSE
+			EXP:(101+DICE) += 1
+		ENDIF
+	REND
+ELSEIF TALENT:1 != 0
+	REPEAT (EXP:10)
+		DICE = RAND:5
+		DICE:1 = RAND:3
+		IF DICE:1 <= (EXP:10) - 1 - COUNT
+			EXP:(101+DICE) += DICE:1
+			COUNT += DICE:1
+		ELSE
+			EXP:(101+DICE) += 1
+		ENDIF
+	REND
+ELSEIF TALENT:2 != 0
+	REPEAT (EXP:10)
+		DICE = RAND:5
+		DICE:1 = RAND:3
+		IF DICE:1 <= (EXP:10) - 1 - COUNT
+			EXP:(106+DICE) += DICE:1
+			COUNT += DICE:1
+		ELSE
+			EXP:(106+DICE) += 1
+		ENDIF
+	REND
+ENDIF
+
+TARGET = STORE_TARGET
+;타겟 복구
+
+
+
+;---------------------------------------
+;@JOB_LEVEL_UP, CHARA_NUM, CHARA_JOB
+;직업레벨 상승.
+;ABL : 46/공격  47/방어  48/마력
+;---------------------------------------
+@JOB_LEVEL_UP, CHARA_NUM, CHARA_JOB
+#DIM DYNAMIC CHARA_NUM
+;등록된 캐릭터의 넘버
+#DIM DYNAMIC CHARA_JOB
+;해당 캐릭터의 직업
+#DIM DYNAMIC DICE2
+;랜덤값
+
+;직업별 능력치(공격,방어,마력 + 체력,기력) 올리기
+SELECTCASE CHARA_JOB
+    CASE 701
+    ;전사
+        DICE2 = RAND:11
+        IF DICE2 <= 0 && DICE2 < 5
+            ABL:CHARA_NUM:91 += 2
+            ABL:CHARA_NUM:92 += 1
+        ELSEIF DICE2 <= 5 && DICE2 < 10
+            ABL:CHARA_NUM:91 += 1
+            ABL:CHARA_NUM:92 += 2
+        ELSE
+            ABL:CHARA_NUM:91 += 1
+            ABL:CHARA_NUM:92 += 1
+            ABL:CHARA_NUM:93 += 1
+        ENDIF
+		MAXBASE:CHARA_NUM:0 += 100
+		BASE:CHARA_NUM:0 += 100
+		MAXBASE:CHARA_NUM:1 += 30
+		BASE:CHARA_NUM:1 += 30
+    CASE 702
+    ;마법사
+        DICE2 = RAND:11
+        IF DICE2 <= 0 && DICE2 < 5
+            ABL:CHARA_NUM:93 += 3
+        ELSEIF DICE2 <= 5 && DICE2 < 8
+            ABL:CHARA_NUM:93 += 2
+            ABL:CHARA_NUM:91 += 1
+        ELSE
+            ABL:CHARA_NUM:93 += 2
+            ABL:CHARA_NUM:92 += 1
+        ENDIF
+		MAXBASE:CHARA_NUM:0 += 20
+		BASE:CHARA_NUM:0 += 20
+		MAXBASE:CHARA_NUM:1 += 120
+		BASE:CHARA_NUM:1 += 120
+    CASE 703
+    ;사제
+        DICE2 = RAND:11
+        IF DICE2 <= 0 && DICE2 < 5
+            ABL:CHARA_NUM:93 += 2
+            ABL:CHARA_NUM:91 += 1
+        ELSEIF DICE2 <= 5 && DICE2 < 10
+            ABL:CHARA_NUM:93 += 2
+            ABL:CHARA_NUM:92 += 1
+        ELSE
+            ABL:CHARA_NUM:91 += 1
+            ABL:CHARA_NUM:92 += 1
+            ABL:CHARA_NUM:93 += 1
+        ENDIF
+		MAXBASE:CHARA_NUM:0 += 20
+		BASE:CHARA_NUM:0 += 20
+		MAXBASE:CHARA_NUM:1 += 90
+		BASE:CHARA_NUM:1 += 90
+    CASE 704
+    ;도적
+        DICE2 = RAND:11
+        IF DICE2 <= 0 && DICE2 < 5
+            ABL:CHARA_NUM:91 += 3
+        ELSEIF DICE2 <= 5 && DICE2 < 8
+            ABL:CHARA_NUM:91 += 2
+            ABL:CHARA_NUM:92 += 1
+        ELSE
+            ABL:CHARA_NUM:91 += 2
+            ABL:CHARA_NUM:93 += 1
+        ENDIF
+		MAXBASE:CHARA_NUM:0 += 70
+		BASE:CHARA_NUM:0 += 70
+		MAXBASE:CHARA_NUM:1 += 30
+		BASE:CHARA_NUM:1 += 30
+    CASE 705
+    ;무녀
+        DICE2 = RAND:11
+        IF DICE2 <= 0 && DICE2 < 5
+            ABL:CHARA_NUM:91 += 1
+            ABL:CHARA_NUM:92 += 1
+            ABL:CHARA_NUM:93 += 1
+        ELSEIF DICE2 <= 5 && DICE2 < 8
+            ABL:CHARA_NUM:93 += 2
+            ABL:CHARA_NUM:92 += 1
+        ELSE
+            ABL:CHARA_NUM:93 += 2
+            ABL:CHARA_NUM:91 += 1
+        ENDIF
+		MAXBASE:CHARA_NUM:0 += 50
+		BASE:CHARA_NUM:0 += 50
+		MAXBASE:CHARA_NUM:1 += 50
+		BASE:CHARA_NUM:1 += 50
+    CASE 706
+    ;궁수
+        DICE2 = RAND:11
+        IF DICE2 <= 0 && DICE2 < 5
+            ABL:CHARA_NUM:91 += 3
+        ELSEIF DICE2 <= 5 && DICE2 < 8
+            ABL:CHARA_NUM:91 += 2
+            ABL:CHARA_NUM:92 += 1
+        ELSE
+            ABL:CHARA_NUM:91 += 2
+            ABL:CHARA_NUM:93 += 1
+        ENDIF
+		MAXBASE:CHARA_NUM:0 += 70
+		BASE:CHARA_NUM:0 += 70
+		MAXBASE:CHARA_NUM:1 += 30
+		BASE:CHARA_NUM:1 += 30
+;+++++++++2차전직++++++++++
+
+
+;+++++++++용사-성녀++++++++++
+    CASE 752
+    ;용사
+        ABL:CHARA_NUM:91 += 2
+        ABL:CHARA_NUM:92 += 2
+        ABL:CHARA_NUM:93 += 2
+        IF RAND:2 == 0
+            ABL:CHARA_NUM:91 += 1
+            ABL:CHARA_NUM:92 += 1
+            ABL:CHARA_NUM:93 += 1
+        ENDIF
+		MAXBASE:CHARA_NUM:0 += 150
+		BASE:CHARA_NUM:0 += 150
+		MAXBASE:CHARA_NUM:1 += 100
+		BASE:CHARA_NUM:1 += 100
+    CASE 753
+    ;성녀
+        IF RAND:2 == 0
+            ABL:CHARA_NUM:91 += 2
+            ABL:CHARA_NUM:92 += 1
+            ABL:CHARA_NUM:93 += 3
+        ELSE
+            ABL:CHARA_NUM:91 += 1
+            ABL:CHARA_NUM:92 += 2
+            ABL:CHARA_NUM:93 += 3
+		ENDIF
+		MAXBASE:CHARA_NUM:0 += 50
+		BASE:CHARA_NUM:0 += 50
+		MAXBASE:CHARA_NUM:1 += 200
+		BASE:CHARA_NUM:1 += 200
+ENDSELECT
+
+;용사후보 보너스
+IF TALENT:CHARA_NUM:751 == 1
+    DICE2 = RAND:3
+    SELECTCASE DICE2
+        CASE 0
+            ABL:CHARA_NUM:91 += 1
+        CASE 1
+            ABL:CHARA_NUM:92 += 1
+        CASE 2
+            ABL:CHARA_NUM:93 += 1
+    ENDSELECT
+;용사일행 보너스
+ELSEIF TALENT:CHARA_NUM:754 == 1 && RAND:2 == 0
+    ;50퍼
+    DICE2 = RAND:3
+    SELECTCASE DICE2
+        CASE 0
+            ABL:CHARA_NUM:91 += 1
+        CASE 1
+            ABL:CHARA_NUM:92 += 1
+        CASE 2
+            ABL:CHARA_NUM:93 += 1
+    ENDSELECT
+;전-용사일행 보너스
+ELSEIF TALENT:CHARA_NUM:755 == 1 && RAND:4 == 0
+    ;25퍼
+    DICE2 = RAND:3
+    SELECTCASE DICE2
+        CASE 0
+            ABL:CHARA_NUM:91 += 1
+        CASE 1
+            ABL:CHARA_NUM:92 += 1
+        CASE 2
+            ABL:CHARA_NUM:93 += 1
+    ENDSELECT
+ENDIF
+
+
+
+
+
+
+;--------------------------------------
+@RANDOM_NAME, ARG, CHARA
+#DIM EUR_NUM
+#DIM WA_NUM
+#DIM NAME_TYPE
+#DIM FAMILY_ID
+#DIM N_LENGTH
+#DIM CHARA
+;--------------------------------------
+;NAME_TYPE	이름의 종류
+;		0：지정 없음　1：영문　2：일본식　3：랜덤
+;N_LENGTH	랜덤 생성 길이
+;CHARA	캐릭터ID
+
+;eraWIZ를 참고. A는 케릭터 No
+;외국명 패턴 수
+EUR_NUM = 143
+;일본명 패턴 수
+WA_NUM = 128
+
+$NAME_NUM
+
+NAME_TYPE = 0
+SIF ARG
+	NAME_TYPE = ARG
+
+;종족에 따라 이름의 종류에 편중을 갖게 하다
+IF RAND:3 == 0 && NAME_TYPE == 0
+	;인간	指定なし
+	IF CFLAG:CHARA:8 == 0
+			NAME_TYPE = 0
+	;엘프	洋名
+	ELSEIF CFLAG:CHARA:8 == 1
+		NAME_TYPE = 1
+	;견인족, 묘인족
+	ELSEIF CFLAG:CHARA:8 == 2 || CFLAG:CHARA:8 == 3
+		NAME_TYPE = 2
+	;흡혈귀	洋名
+	ELSEIF CFLAG:CHARA:8 == 4
+		NAME_TYPE = 1
+	;드래곤	生成名
+	ELSEIF CFLAG:CHARA:8 == 5
+		NAME_TYPE = 3
+	;드워프
+	ELSEIF CFLAG:CHARA:8 == 6
+		NAME_TYPE = 1
+	;천족
+	ELSEIF CFLAG:CHARA:8 == 7
+		NAME_TYPE = 1
+	;마족
+	ELSEIF CFLAG:CHARA:8 == 8
+		NAME_TYPE = 1
+	ELSE
+		NAME_TYPE = 0
+	ENDIF
+ENDIF
+
+IF NAME_TYPE == 1 || (NAME_TYPE == 0 && RAND:4 == 0)
+	CFLAG:CHARA:12 = RAND:EUR_NUM
+ELSEIF NAME_TYPE == 2 || (NAME_TYPE == 0 && RAND:2)
+	CFLAG:CHARA:12 = RAND:WA_NUM + 200
+ELSE
+	N_LENGTH = 3 - RAND:2 - RAND:3 % 2
+	CFLAG:CHARA:12 = 0
+	REPEAT N_LENGTH
+		CFLAG:CHARA:12 *= 1000
+		;끝에만 사용할 수 있는 문자열인지 아닌지
+		IF COUNT == 0 && N_LENGTH > 1 && RAND:5 != 0
+			M = 2
+		ELSE
+			M = 1
+		ENDIF
+
+		IF M == 1
+			IF (RAND:3 == 0 && N_LENGTH != 1) || (RAND:2 == 0 && N_LENGTH == 3)
+				N = RAND:9 + 300
+			ELSE
+				N = RAND:30 + 200
+			ENDIF
+		ELSE
+			IF RAND:8 == 0 && N_LENGTH != 1
+				N = RAND:2 + 500
+			ELSE
+				N = RAND:27 + 400
+			ENDIF
+		ENDIF
+		CFLAG:CHARA:12 += N
+		SIF COUNT < 0
+			BREAK
+		SIF N_LENGTH == 1 && (N == 200 || N == 201 || N == 204 || N == 205 || N == 207 || N == 208 || N == 210 || N == 215 || N == 217 || N == 218 || N == 219 || N == 227)
+			COUNT -= 10
+	REND
+	CFLAG:CHARA:12 += 2000000000
+ENDIF
+
+IF CHARANUM < (EUR_NUM + WA_NUM) * 4 /10
+	REPEAT CHARANUM
+		SIF COUNT == CHARA
+			CONTINUE
+		SIF CFLAG:COUNT:12 == CFLAG:CHARA:12
+			GOTO NAME_NUM
+	REND
+ENDIF
+
+CALL NAMING, CHARA
+
+;--------------------------------------
+@NAMING, CHARA
+#DIMS CHARA_NAME
+#DIM CHARA
+#DIM NAME_ID
+#DIM NAME_RAND_ID,2
+;--------------------------------------
+;유저의 설정 이름
+;IF CFLAG:CHARA:420 != 0
+;	CHARA_NAME = %CSTR:CHARA:1%
+;	RETURN 0
+;ENDIF
+
+;이름 결정
+NAME_ID = CFLAG:CHARA:12
+
+IF NAME_ID < 1000000000
+	IF NAME_ID == 0
+		CHARA_NAME = 메리
+	ELSEIF NAME_ID == 1
+		CHARA_NAME = 소피아
+	ELSEIF NAME_ID == 2
+		CHARA_NAME = 안나
+	ELSEIF NAME_ID == 3
+		CHARA_NAME = 실비아
+	ELSEIF NAME_ID == 4
+		CHARA_NAME = 카티아
+	ELSEIF NAME_ID == 5
+		CHARA_NAME = 에리
+	ELSEIF NAME_ID == 6
+		CHARA_NAME = 미쉘
+	ELSEIF NAME_ID == 7
+		CHARA_NAME = 엘렌
+	ELSEIF NAME_ID == 8
+		CHARA_NAME = 에티카
+	ELSEIF NAME_ID == 9
+		CHARA_NAME = 아리스
+	ELSEIF NAME_ID == 10
+		CHARA_NAME = 프랑소와즈
+	ELSEIF NAME_ID == 11
+		CHARA_NAME = 엘렉트라
+	ELSEIF NAME_ID == 12
+		CHARA_NAME = 그레이스
+	ELSEIF NAME_ID == 13
+		CHARA_NAME = 제시카
+	ELSEIF NAME_ID == 14
+		CHARA_NAME = 레이아
+	ELSEIF NAME_ID == 15
+		CHARA_NAME = 레베카
+	ELSEIF NAME_ID == 16
+		CHARA_NAME = 벨베트
+	ELSEIF NAME_ID == 17
+		CHARA_NAME = 릴리
+	ELSEIF NAME_ID == 18
+		CHARA_NAME = 예카테리나
+	ELSEIF NAME_ID == 19
+		CHARA_NAME = 아가사
+	ELSEIF NAME_ID == 20
+		CHARA_NAME = 아멜리아
+	ELSEIF NAME_ID == 21
+		CHARA_NAME = 안젤리카
+	ELSEIF NAME_ID == 22
+		CHARA_NAME = 브리짓
+	ELSEIF NAME_ID == 23
+		CHARA_NAME = 크리스티나
+	ELSEIF NAME_ID == 24
+		CHARA_NAME = 클로디아
+	ELSEIF NAME_ID == 25
+		CHARA_NAME = 쉐릴
+	ELSEIF NAME_ID == 26
+		CHARA_NAME = 쉐리
+	ELSEIF NAME_ID == 27
+		CHARA_NAME = 세실리아
+	ELSEIF NAME_ID == 28
+		CHARA_NAME = 베라
+	ELSEIF NAME_ID == 29
+		CHARA_NAME = 베키
+	ELSEIF NAME_ID == 30
+		CHARA_NAME = 에이브릴
+	ELSEIF NAME_ID == 31
+		CHARA_NAME = 도로시
+	ELSEIF NAME_ID == 32
+		CHARA_NAME = 에밀리
+	ELSEIF NAME_ID == 33
+		CHARA_NAME = 펠리시아
+	ELSEIF NAME_ID == 34
+		CHARA_NAME = 프란시스카
+	ELSEIF NAME_ID == 35
+		CHARA_NAME = 글로리아
+	ELSEIF NAME_ID == 36
+		CHARA_NAME = 제니퍼
+	ELSEIF NAME_ID == 37
+		CHARA_NAME = 마가렛
+	ELSEIF NAME_ID == 38
+		CHARA_NAME = 올리비아
+	ELSEIF NAME_ID == 39
+		CHARA_NAME = 베로니카
+	ELSEIF NAME_ID == 40
+		CHARA_NAME = 세라피나
+	ELSEIF NAME_ID == 41
+		CHARA_NAME = 플로라
+	ELSEIF NAME_ID == 42
+		CHARA_NAME = 타바사
+	ELSEIF NAME_ID == 43
+		CHARA_NAME = 에이다
+	ELSEIF NAME_ID == 44
+		CHARA_NAME = 캐롤
+	ELSEIF NAME_ID == 45
+		CHARA_NAME = 샤를로트
+	ELSEIF NAME_ID == 46
+		CHARA_NAME = 코델리아
+	ELSEIF NAME_ID == 47
+		CHARA_NAME = 에밀리아
+	ELSEIF NAME_ID == 48
+		CHARA_NAME = 에리카
+	ELSEIF NAME_ID == 49
+		CHARA_NAME = 이브
+	ELSEIF NAME_ID == 50
+		CHARA_NAME = 헨리에타
+	ELSEIF NAME_ID == 51
+		CHARA_NAME = 아이리스
+	ELSEIF NAME_ID == 52
+		CHARA_NAME = 아이비
+	ELSEIF NAME_ID == 53
+		CHARA_NAME = 루이즈
+	ELSEIF NAME_ID == 54
+		CHARA_NAME = 리디아
+	ELSEIF NAME_ID == 55
+		CHARA_NAME = 메이벨
+	ELSEIF NAME_ID == 56
+		CHARA_NAME = 나탈리아
+	ELSEIF NAME_ID == 57
+		CHARA_NAME = 니나
+	ELSEIF NAME_ID == 58
+		CHARA_NAME = 노라
+	ELSEIF NAME_ID == 59
+		CHARA_NAME = 패트리시아
+	ELSEIF NAME_ID == 60
+		CHARA_NAME = 피리스
+	ELSEIF NAME_ID == 61
+		CHARA_NAME = 레이첼
+	ELSEIF NAME_ID == 62
+		CHARA_NAME = 로즈마리
+	ELSEIF NAME_ID == 63
+		CHARA_NAME = 스칼렛
+	ELSEIF NAME_ID == 64
+		CHARA_NAME = 샤리
+	ELSEIF NAME_ID == 65
+		CHARA_NAME = 스텔라
+	ELSEIF NAME_ID == 66
+		CHARA_NAME = 수지
+	ELSEIF NAME_ID == 67
+		CHARA_NAME = 베네사
+	ELSEIF NAME_ID == 68
+		CHARA_NAME = 웬디
+	ELSEIF NAME_ID == 69
+		CHARA_NAME = 안네리제
+	ELSEIF NAME_ID == 70
+		CHARA_NAME = 비앙카
+	ELSEIF NAME_ID == 71
+		CHARA_NAME = 코르넬리아
+	ELSEIF NAME_ID == 72
+		CHARA_NAME = 쥴리아
+	ELSEIF NAME_ID == 73
+		CHARA_NAME = 에레오노라
+	ELSEIF NAME_ID == 74
+		CHARA_NAME = 엘프리데
+	ELSEIF NAME_ID == 75
+		CHARA_NAME = 리젤로테
+	ELSEIF NAME_ID == 76
+		CHARA_NAME = 빌헬르미나
+	ELSEIF NAME_ID == 77
+		CHARA_NAME = 아나스타샤
+	ELSEIF NAME_ID == 78
+		CHARA_NAME = 클로에
+	ELSEIF NAME_ID == 79
+		CHARA_NAME = 오리가
+	ELSEIF NAME_ID == 80
+		CHARA_NAME = 쿠델리아
+	ELSEIF NAME_ID == 81
+		CHARA_NAME = 샤를롯테
+	ELSEIF NAME_ID == 82
+		CHARA_NAME = 엘다
+
+;20151225追加分
+	ELSEIF NAME_ID == 83
+		CHARA_NAME = 아이리스
+	ELSEIF NAME_ID == 84
+		CHARA_NAME = 아이린
+	ELSEIF NAME_ID == 85
+		CHARA_NAME = 아리시아
+	ELSEIF NAME_ID == 86
+		CHARA_NAME = 안젤린느
+	ELSEIF NAME_ID == 87
+		CHARA_NAME = 잉그리드
+	ELSEIF NAME_ID == 88
+		CHARA_NAME = 비비안
+	ELSEIF NAME_ID == 89
+		CHARA_NAME = 에반젤린
+	ELSEIF NAME_ID == 90
+		CHARA_NAME = 에밀리아
+	ELSEIF NAME_ID == 91
+		CHARA_NAME = 엘리제
+	ELSEIF NAME_ID == 92
+		CHARA_NAME = 엘레오노르
+	ELSEIF NAME_ID == 93
+		CHARA_NAME = 에델가르트
+	ELSEIF NAME_ID == 94
+		CHARA_NAME = 오필리아
+	ELSEIF NAME_ID == 95
+		CHARA_NAME = 카논
+	ELSEIF NAME_ID == 96
+		CHARA_NAME = 사라
+	ELSEIF NAME_ID == 97
+		CHARA_NAME = 시안
+	ELSEIF NAME_ID == 98
+		CHARA_NAME = 지지
+	ELSEIF NAME_ID == 99
+		CHARA_NAME = 지젤
+	ELSEIF NAME_ID == 100
+		CHARA_NAME = 샤논
+	ELSEIF NAME_ID == 101
+		CHARA_NAME = 샤마라
+	ELSEIF NAME_ID == 102
+		CHARA_NAME = 샤론
+	ELSEIF NAME_ID == 103
+		CHARA_NAME = 쥬느뵈브
+	ELSEIF NAME_ID == 104
+		CHARA_NAME = 실비
+	ELSEIF NAME_ID == 105
+		CHARA_NAME = 실비아
+	ELSEIF NAME_ID == 106
+		CHARA_NAME = 세실
+	ELSEIF NAME_ID == 107
+		CHARA_NAME = 셀마
+	ELSEIF NAME_ID == 108
+		CHARA_NAME = 체칠리아
+	ELSEIF NAME_ID == 109
+		CHARA_NAME = 티아
+	ELSEIF NAME_ID == 110
+		CHARA_NAME = 디트린데
+	ELSEIF NAME_ID == 111
+		CHARA_NAME = 노엘
+	ELSEIF NAME_ID == 112
+		CHARA_NAME = 파티마
+	ELSEIF NAME_ID == 113
+		CHARA_NAME = 브랑슈
+	ELSEIF NAME_ID == 114
+		CHARA_NAME = 프리실라
+	ELSEIF NAME_ID == 115
+		CHARA_NAME = 프림로즈
+	ELSEIF NAME_ID == 116
+		CHARA_NAME = 플르르
+	ELSEIF NAME_ID == 117
+		CHARA_NAME = 플로란스
+	ELSEIF NAME_ID == 118
+		CHARA_NAME = 베릴
+	ELSEIF NAME_ID == 119
+		CHARA_NAME = 헤이즐
+	ELSEIF NAME_ID == 120
+		CHARA_NAME = 마샤
+	ELSEIF NAME_ID == 121
+		CHARA_NAME = 뮤리엘
+	ELSEIF NAME_ID == 122
+		CHARA_NAME = 미샤
+	ELSEIF NAME_ID == 123
+		CHARA_NAME = 미리야
+	ELSEIF NAME_ID == 124
+		CHARA_NAME = 메이
+	ELSEIF NAME_ID == 125
+		CHARA_NAME = 메르비나
+	ELSEIF NAME_ID == 126
+		CHARA_NAME = 멜로디
+	ELSEIF NAME_ID == 127
+		CHARA_NAME = 유니스
+	ELSEIF NAME_ID == 128
+		CHARA_NAME = 유페미아
+	ELSEIF NAME_ID == 129
+		CHARA_NAME = 라티샤
+	ELSEIF NAME_ID == 130
+		CHARA_NAME = 라라
+	ELSEIF NAME_ID == 131
+		CHARA_NAME = 리아
+	ELSEIF NAME_ID == 132
+		CHARA_NAME = 류크레이스
+	ELSEIF NAME_ID == 133
+		CHARA_NAME = 류시엔느
+	ELSEIF NAME_ID == 134
+		CHARA_NAME = 류크레이샤
+	ELSEIF NAME_ID == 135
+		CHARA_NAME = 루실
+	ELSEIF NAME_ID == 136
+		CHARA_NAME = 루나
+	ELSEIF NAME_ID == 137
+		CHARA_NAME = 루루
+	ELSEIF NAME_ID == 138
+		CHARA_NAME = 레이라
+	ELSEIF NAME_ID == 139
+		CHARA_NAME = 레티샤
+	ELSEIF NAME_ID == 140
+		CHARA_NAME = 로자린드
+	ELSEIF NAME_ID == 141
+		CHARA_NAME = 로자리아
+	ELSEIF NAME_ID == 142
+		CHARA_NAME = 로렛타
+
+;和名
+	ELSEIF NAME_ID == 200
+		CHARA_NAME = 사쿠라
+	ELSEIF NAME_ID == 201
+		CHARA_NAME = 하루카
+	ELSEIF NAME_ID == 202
+		CHARA_NAME = 카스미
+	ELSEIF NAME_ID == 203
+		CHARA_NAME = 히나
+	ELSEIF NAME_ID == 204
+		CHARA_NAME = 아오이
+	ELSEIF NAME_ID == 205
+		CHARA_NAME = 미즈호
+	ELSEIF NAME_ID == 206
+		CHARA_NAME = 아야
+	ELSEIF NAME_ID == 207
+		CHARA_NAME = 토모에
+	ELSEIF NAME_ID == 208
+		CHARA_NAME = 사츠키
+	ELSEIF NAME_ID == 209
+		CHARA_NAME = 야요이
+	ELSEIF NAME_ID == 210
+		CHARA_NAME = 나데시코
+	ELSEIF NAME_ID == 211
+		CHARA_NAME = 카나미
+	ELSEIF NAME_ID == 212
+		CHARA_NAME = 아야메
+	ELSEIF NAME_ID == 213
+		CHARA_NAME = 유이
+	ELSEIF NAME_ID == 214
+		CHARA_NAME = 린
+	ELSEIF NAME_ID == 215
+		CHARA_NAME = 히나타
+	ELSEIF NAME_ID == 216
+		CHARA_NAME = 아사기
+	ELSEIF NAME_ID == 217
+		CHARA_NAME = 유키카제
+	ELSEIF NAME_ID == 218
+		CHARA_NAME = 란
+	ELSEIF NAME_ID == 219
+		CHARA_NAME = 히메
+	ELSEIF NAME_ID == 220
+		CHARA_NAME = 아스카
+	ELSEIF NAME_ID == 221
+		CHARA_NAME = 사기리
+	ELSEIF NAME_ID == 222
+		CHARA_NAME = 미즈키
+	ELSEIF NAME_ID == 223
+		CHARA_NAME = 호무라
+	ELSEIF NAME_ID == 224
+		CHARA_NAME = 사야카
+	ELSEIF NAME_ID == 225
+		CHARA_NAME = 마나카
+	ELSEIF NAME_ID == 226
+		CHARA_NAME = 에리
+	ELSEIF NAME_ID == 227
+		CHARA_NAME = 린코
+	ELSEIF NAME_ID == 228
+		CHARA_NAME = 카나미
+;20151225追加分
+	ELSEIF NAME_ID == 229
+		CHARA_NAME = 아마네
+	ELSEIF NAME_ID == 230
+		CHARA_NAME = 아야노
+	ELSEIF NAME_ID == 231
+		CHARA_NAME = 이오리
+	ELSEIF NAME_ID == 232
+		CHARA_NAME = 이자나미
+	ELSEIF NAME_ID == 233
+		CHARA_NAME = 이자요이
+	ELSEIF NAME_ID == 234
+		CHARA_NAME = 이로하
+	ELSEIF NAME_ID == 235
+		CHARA_NAME = 우라라
+	ELSEIF NAME_ID == 236
+		CHARA_NAME = 오우카
+	ELSEIF NAME_ID == 237
+		CHARA_NAME = 오토하
+	ELSEIF NAME_ID == 238
+		CHARA_NAME = 오토메
+	ELSEIF NAME_ID == 239
+		CHARA_NAME = 오보로
+	ELSEIF NAME_ID == 240
+		CHARA_NAME = 카에데
+	ELSEIF NAME_ID == 241
+		CHARA_NAME = 카가리
+	ELSEIF NAME_ID == 242
+		CHARA_NAME = 카가리비
+	ELSEIF NAME_ID == 243
+		CHARA_NAME = 카구라
+	ELSEIF NAME_ID == 244
+		CHARA_NAME = 카스가
+	ELSEIF NAME_ID == 245
+		CHARA_NAME = 카나에
+	ELSEIF NAME_ID == 246
+		CHARA_NAME = 카야
+	ELSEIF NAME_ID == 247
+		CHARA_NAME = 칸나즈키
+	ELSEIF NAME_ID == 248
+		CHARA_NAME = 키쿄우
+	ELSEIF NAME_ID == 249
+		CHARA_NAME = 키사라기
+	ELSEIF NAME_ID == 250
+		CHARA_NAME = 킷카
+	ELSEIF NAME_ID == 251
+		CHARA_NAME = 쿠온
+	ELSEIF NAME_ID == 252
+		CHARA_NAME = 쿠레나이
+	ELSEIF NAME_ID == 253
+		CHARA_NAME = 쿠레하
+	ELSEIF NAME_ID == 254
+		CHARA_NAME = 코코노
+	ELSEIF NAME_ID == 255
+		CHARA_NAME = 코쵸우
+	ELSEIF NAME_ID == 256
+		CHARA_NAME = 코츠네
+	ELSEIF NAME_ID == 257
+		CHARA_NAME = 코츠노하
+	ELSEIF NAME_ID == 258
+		CHARA_NAME = 코마치
+	ELSEIF NAME_ID == 259
+		CHARA_NAME = 사쿠야
+	ELSEIF NAME_ID == 260
+		CHARA_NAME = 사자나미
+	ELSEIF NAME_ID == 261
+		CHARA_NAME = 사잔카
+	ELSEIF NAME_ID == 262
+		CHARA_NAME = 사츠키
+	ELSEIF NAME_ID == 263
+		CHARA_NAME = 사미다레
+	ELSEIF NAME_ID == 264
+		CHARA_NAME = 사야
+	ELSEIF NAME_ID == 265
+		CHARA_NAME = 시즈
+	ELSEIF NAME_ID == 266
+		CHARA_NAME = 시즈쿠
+	ELSEIF NAME_ID == 267
+		CHARA_NAME = 시노
+	ELSEIF NAME_ID == 268
+		CHARA_NAME = 시라누이
+	ELSEIF NAME_ID == 269
+		CHARA_NAME = 시로가네
+	ELSEIF NAME_ID == 270
+		CHARA_NAME = 스즈
+	ELSEIF NAME_ID == 271
+		CHARA_NAME = 스즈란
+	ELSEIF NAME_ID == 272
+		CHARA_NAME = 세츠나
+	ELSEIF NAME_ID == 273
+		CHARA_NAME = 츠쿠요미
+	ELSEIF NAME_ID == 274
+		CHARA_NAME = 츠즈리
+	ELSEIF NAME_ID == 275
+		CHARA_NAME = 츠바키
+	ELSEIF NAME_ID == 276
+		CHARA_NAME = 츠라라
+	ELSEIF NAME_ID == 277
+		CHARA_NAME = 토키와
+	ELSEIF NAME_ID == 278
+		CHARA_NAME = 토와
+	ELSEIF NAME_ID == 279
+		CHARA_NAME = 나카츠키
+	ELSEIF NAME_ID == 280
+		CHARA_NAME = 나기사
+	ELSEIF NAME_ID == 281
+		CHARA_NAME = 나나
+	ELSEIF NAME_ID == 282
+		CHARA_NAME = 나나세
+	ELSEIF NAME_ID == 283
+		CHARA_NAME = 나유타
+	ELSEIF NAME_ID == 284
+		CHARA_NAME = 하즈키
+	ELSEIF NAME_ID == 285
+		CHARA_NAME = 하나카가리
+	ELSEIF NAME_ID == 286
+		CHARA_NAME = 하야테
+	ELSEIF NAME_ID == 287
+		CHARA_NAME = 히스이
+	ELSEIF NAME_ID == 288
+		CHARA_NAME = 히나기쿠
+	ELSEIF NAME_ID == 289
+		CHARA_NAME = 히후미
+	ELSEIF NAME_ID == 290
+		CHARA_NAME = 히마와리
+	ELSEIF NAME_ID == 291
+		CHARA_NAME = 뱌쿠야
+	ELSEIF NAME_ID == 292
+		CHARA_NAME = 히요리
+	ELSEIF NAME_ID == 293
+		CHARA_NAME = 후즈키
+	ELSEIF NAME_ID == 294
+		CHARA_NAME = 마코토
+	ELSEIF NAME_ID == 295
+		CHARA_NAME = 마시로
+	ELSEIF NAME_ID == 296
+		CHARA_NAME = 마츠카제
+	ELSEIF NAME_ID == 297
+		CHARA_NAME = 마츠리
+	ELSEIF NAME_ID == 298
+		CHARA_NAME = 마나즈루
+	ELSEIF NAME_ID == 299
+		CHARA_NAME = 마유
+	ELSEIF NAME_ID == 300
+		CHARA_NAME = 미우
+	ELSEIF NAME_ID == 301
+		CHARA_NAME = 미카즈키
+	ELSEIF NAME_ID == 302
+		CHARA_NAME = 미사오
+	ELSEIF NAME_ID == 303
+		CHARA_NAME = 미소라
+	ELSEIF NAME_ID == 304
+		CHARA_NAME = 미나즈키
+	ELSEIF NAME_ID == 305
+		CHARA_NAME = 미야코
+	ELSEIF NAME_ID == 306
+		CHARA_NAME = 미야비
+	ELSEIF NAME_ID == 307
+		CHARA_NAME = 무츠키
+	ELSEIF NAME_ID == 308
+		CHARA_NAME = 무라사키
+	ELSEIF NAME_ID == 309
+		CHARA_NAME = 무라사메
+	ELSEIF NAME_ID == 310
+		CHARA_NAME = 모미지
+	ELSEIF NAME_ID == 311
+		CHARA_NAME = 야에
+	ELSEIF NAME_ID == 312
+		CHARA_NAME = 야요이
+	ELSEIF NAME_ID == 313
+		CHARA_NAME = 유우가오
+	ELSEIF NAME_ID == 314
+		CHARA_NAME = 유우즈루
+	ELSEIF NAME_ID == 315
+		CHARA_NAME = 유우나
+	ELSEIF NAME_ID == 316
+		CHARA_NAME = 유카리
+	ELSEIF NAME_ID == 317
+		CHARA_NAME = 유키지
+	ELSEIF NAME_ID == 318
+		CHARA_NAME = 유즈
+	ELSEIF NAME_ID == 319
+		CHARA_NAME = 유즈리하
+	ELSEIF NAME_ID == 320
+		CHARA_NAME = 유노
+	ELSEIF NAME_ID == 321
+		CHARA_NAME = 유메지
+	ELSEIF NAME_ID == 322
+		CHARA_NAME = 요미
+	ELSEIF NAME_ID == 323
+		CHARA_NAME = 릿카
+	ELSEIF NAME_ID == 324
+		CHARA_NAME = 루리
+	ELSEIF NAME_ID == 325
+		CHARA_NAME = 렌게
+	ELSEIF NAME_ID == 326
+		CHARA_NAME = 와카나
+	ELSEIF NAME_ID == 327
+		CHARA_NAME = 와카바
+	ENDIF
+ELSE
+	CHARA_NAME = 
+	NAME_RAND_ID = NAME_ID % 1000000000
+;랜덤 이름ver0.2
+	IF NAME_ID > 2000000000
+		WHILE NAME_RAND_ID > 1
+			NAME_RAND_ID:1 = NAME_RAND_ID % 1000
+;범용
+			IF NAME_RAND_ID:1 == 200
+				LOCALS = 아
+			ELSEIF NAME_RAND_ID:1 == 201
+				LOCALS = 아무
+			ELSEIF NAME_RAND_ID:1 == 202
+				LOCALS = 아르
+			ELSEIF NAME_RAND_ID:1 == 203
+				LOCALS = 안
+			ELSEIF NAME_RAND_ID:1 == 204
+				LOCALS = 이아
+			ELSEIF NAME_RAND_ID:1 == 205
+				LOCALS = 우르
+			ELSEIF NAME_RAND_ID:1 == 206
+				LOCALS = 에아
+			ELSEIF NAME_RAND_ID:1 == 207
+				LOCALS = 카르
+			ELSEIF NAME_RAND_ID:1 == 208
+				LOCALS = 시이
+			ELSEIF NAME_RAND_ID:1 == 209
+				LOCALS = 시아
+			ELSEIF NAME_RAND_ID:1 == 210
+				LOCALS = 스토
+			ELSEIF NAME_RAND_ID:1 == 211
+				LOCALS = 나루
+			ELSEIF NAME_RAND_ID:1 == 212
+				LOCALS = 네아
+			ELSEIF NAME_RAND_ID:1 == 213
+				LOCALS = 피르
+			ELSEIF NAME_RAND_ID:1 == 214
+				LOCALS = 포르
+			ELSEIF NAME_RAND_ID:1 == 215
+				LOCALS = 미스
+			ELSEIF NAME_RAND_ID:1 == 216
+				LOCALS = 메이
+			ELSEIF NAME_RAND_ID:1 == 217
+				LOCALS = 메티
+			ELSEIF NAME_RAND_ID:1 == 218
+				LOCALS = 라오
+			ELSEIF NAME_RAND_ID:1 == 219
+				LOCALS = 라나
+			ELSEIF NAME_RAND_ID:1 == 220
+				LOCALS = 뤼
+			ELSEIF NAME_RAND_ID:1 == 221
+				LOCALS = 리이
+			ELSEIF NAME_RAND_ID:1 == 222
+				LOCALS = 리즈
+			ELSEIF NAME_RAND_ID:1 == 223
+				LOCALS = 류
+			ELSEIF NAME_RAND_ID:1 == 224
+				LOCALS = 루
+			ELSEIF NAME_RAND_ID:1 == 225
+				LOCALS = 루크
+			ELSEIF NAME_RAND_ID:1 == 226
+				LOCALS = 레이
+			ELSEIF NAME_RAND_ID:1 == 227
+				LOCALS = 레세
+			ELSEIF NAME_RAND_ID:1 == 228
+				LOCALS = 레라
+			ELSEIF NAME_RAND_ID:1 == 229
+				LOCALS = 렌
+;범용일음
+			ELSEIF NAME_RAND_ID:1 == 300
+				LOCALS = 베
+			ELSEIF NAME_RAND_ID:1 == 301
+				LOCALS = 시
+			ELSEIF NAME_RAND_ID:1 == 302
+				LOCALS = 쉐
+			ELSEIF NAME_RAND_ID:1 == 303
+				LOCALS = 샤
+			ELSEIF NAME_RAND_ID:1 == 304
+				LOCALS = 티
+			ELSEIF NAME_RAND_ID:1 == 305
+				LOCALS = 투
+			ELSEIF NAME_RAND_ID:1 == 306
+				LOCALS = 리
+			ELSEIF NAME_RAND_ID:1 == 307
+				LOCALS = 루
+			ELSEIF NAME_RAND_ID:1 == 308
+				LOCALS = 레
+;종단
+			ELSEIF NAME_RAND_ID:1 == 400
+				LOCALS = 비아
+			ELSEIF NAME_RAND_ID:1 == 400
+				LOCALS = 온
+			ELSEIF NAME_RAND_ID:1 == 402
+				LOCALS = 키아
+			ELSEIF NAME_RAND_ID:1 == 403
+				LOCALS = 시아
+			ELSEIF NAME_RAND_ID:1 == 404
+				LOCALS = 타리아
+			ELSEIF NAME_RAND_ID:1 == 405
+				LOCALS = 탈리아
+			ELSEIF NAME_RAND_ID:1 == 406
+				LOCALS = 티아
+			ELSEIF NAME_RAND_ID:1 == 407
+				LOCALS = 디아
+			ELSEIF NAME_RAND_ID:1 == 408
+				LOCALS = 티스
+			ELSEIF NAME_RAND_ID:1 == 409
+				LOCALS = 니아
+			ELSEIF NAME_RAND_ID:1 == 410
+				LOCALS = 파
+			ELSEIF NAME_RAND_ID:1 == 411
+				LOCALS = 피아
+			ELSEIF NAME_RAND_ID:1 == 412
+				LOCALS = 플라
+			ELSEIF NAME_RAND_ID:1 == 413
+				LOCALS = 미아
+			ELSEIF NAME_RAND_ID:1 == 414
+				LOCALS = 리아
+			ELSEIF NAME_RAND_ID:1 == 415
+				LOCALS = 리카
+			ELSEIF NAME_RAND_ID:1 == 416
+				LOCALS = 리스
+			ELSEIF NAME_RAND_ID:1 == 417
+				LOCALS = 리제
+			ELSEIF NAME_RAND_ID:1 == 418
+				LOCALS = 리마
+			ELSEIF NAME_RAND_ID:1 == 419
+				LOCALS = 릴
+			ELSEIF NAME_RAND_ID:1 == 420
+				LOCALS = 즈
+			ELSEIF NAME_RAND_ID:1 == 421
+				LOCALS = 제
+			ELSEIF NAME_RAND_ID:1 == 422
+				LOCALS = 나
+			ELSEIF NAME_RAND_ID:1 == 423
+				LOCALS = 파
+			ELSEIF NAME_RAND_ID:1 == 424
+				LOCALS = 마
+			ELSEIF NAME_RAND_ID:1 == 425
+				LOCALS = 라
+			ELSEIF NAME_RAND_ID:1 == 426
+				LOCALS = 라
+;終端一音
+			ELSEIF NAME_RAND_ID:1 == 500
+				LOCALS = ー
+			ELSEIF NAME_RAND_ID:1 == 501
+				LOCALS = 헨
+;사용하지 않음
+			ELSEIF NAME_RAND_ID:1 == 900
+				LOCALS = 산
+			ELSEIF NAME_RAND_ID:1 == 901
+				LOCALS = 시프
+			ELSEIF NAME_RAND_ID:1 == 902
+				LOCALS = 소라
+			ELSEIF NAME_RAND_ID:1 == 903
+				LOCALS = 미로
+
+			ENDIF
+			STRLENS LOCALS
+			SUBSTRING LOCALS, 0, 1
+			IF LOCALS:1 == RESULTS && (LOCALS:1 == "아" || LOCALS:1 == "이" || LOCALS:1 == "우" || LOCALS:1 == "에" || LOCALS:1 == "오" || LOCALS:1 == "헨" || LOCALS:1 == "ー")
+				SUBSTRING LOCALS, 2, RESULT - 1
+				LOCALS = %RESULTS%
+			ENDIF
+			IF RESULTS == "ッ" && LOCALS:1 == "ー"
+				STRLENS CHARA_NAME
+				SUBSTRING CHARA_NAME, 0, RESULT - 2
+				CHARA_NAME = %RESULTS%
+			ENDIF
+			SUBSTRING LOCALS, RESULT - 2, RESULT - 1
+			LOCALS:1 = %RESULTS%
+			CHARA_NAME = %CHARA_NAME%%LOCALS%
+			NAME_RAND_ID /= 1000
+		WEND
+;무작위 이름ver0.1
+	ELSEIF NAME_ID > 1000000000
+		WHILE NAME_RAND_ID > 1
+			NAME_RAND_ID:1 = NAME_RAND_ID % 1000
+			IF NAME_RAND_ID:1 == 100
+				CHARA_NAME = %CHARA_NAME%아
+			ELSEIF NAME_RAND_ID:1 == 101
+				CHARA_NAME = %CHARA_NAME%아무
+			ELSEIF NAME_RAND_ID:1 == 102
+				CHARA_NAME = %CHARA_NAME%아르
+			ELSEIF NAME_RAND_ID:1 == 103
+				CHARA_NAME = %CHARA_NAME%안
+			ELSEIF NAME_RAND_ID:1 == 104
+				CHARA_NAME = %CHARA_NAME%이아
+			ELSEIF NAME_RAND_ID:1 == 105
+				CHARA_NAME = %CHARA_NAME%베
+			ELSEIF NAME_RAND_ID:1 == 106
+				CHARA_NAME = %CHARA_NAME%우르
+			ELSEIF NAME_RAND_ID:1 == 107
+				CHARA_NAME = %CHARA_NAME%카르
+			ELSEIF NAME_RAND_ID:1 == 108
+				CHARA_NAME = %CHARA_NAME%산
+			ELSEIF NAME_RAND_ID:1 == 109
+				CHARA_NAME = %CHARA_NAME%시
+			ELSEIF NAME_RAND_ID:1 == 110
+				CHARA_NAME = %CHARA_NAME%시이
+			ELSEIF NAME_RAND_ID:1 == 111
+				CHARA_NAME = %CHARA_NAME%쉐
+			ELSEIF NAME_RAND_ID:1 == 112
+				CHARA_NAME = %CHARA_NAME%시프
+			ELSEIF NAME_RAND_ID:1 == 113
+				CHARA_NAME = %CHARA_NAME%샤
+			ELSEIF NAME_RAND_ID:1 == 114
+				CHARA_NAME = %CHARA_NAME%소라
+			ELSEIF NAME_RAND_ID:1 == 115
+				CHARA_NAME = %CHARA_NAME%티
+			ELSEIF NAME_RAND_ID:1 == 116
+				CHARA_NAME = %CHARA_NAME%투
+			ELSEIF NAME_RAND_ID:1 == 117
+				CHARA_NAME = %CHARA_NAME%네아
+			ELSEIF NAME_RAND_ID:1 == 118
+				CHARA_NAME = %CHARA_NAME%피르
+			ELSEIF NAME_RAND_ID:1 == 119
+				CHARA_NAME = %CHARA_NAME%포르
+			ELSEIF NAME_RAND_ID:1 == 120
+				CHARA_NAME = %CHARA_NAME%미로
+			ELSEIF NAME_RAND_ID:1 == 121
+				CHARA_NAME = %CHARA_NAME%리
+			ELSEIF NAME_RAND_ID:1 == 122
+				CHARA_NAME = %CHARA_NAME%뤼
+			ELSEIF NAME_RAND_ID:1 == 123
+				CHARA_NAME = %CHARA_NAME%리이
+			ELSEIF NAME_RAND_ID:1 == 124
+				CHARA_NAME = %CHARA_NAME%리즈
+			ELSEIF NAME_RAND_ID:1 == 125
+				CHARA_NAME = %CHARA_NAME%류
+			ELSEIF NAME_RAND_ID:1 == 126
+				CHARA_NAME = %CHARA_NAME%레이
+			ELSEIF NAME_RAND_ID:1 == 127
+				CHARA_NAME = %CHARA_NAME%레라
+			ELSEIF NAME_RAND_ID:1 == 128
+				CHARA_NAME = %CHARA_NAME%렌
+			ELSEIF NAME_RAND_ID:1 == 200
+				CHARA_NAME = %CHARA_NAME%ー
+			ELSEIF NAME_RAND_ID:1 == 201
+				CHARA_NAME = %CHARA_NAME%비아
+			ELSEIF NAME_RAND_ID:1 == 202
+				CHARA_NAME = %CHARA_NAME%시아
+			ELSEIF NAME_RAND_ID:1 == 203
+				CHARA_NAME = %CHARA_NAME%탈리아
+			ELSEIF NAME_RAND_ID:1 == 204
+				CHARA_NAME = %CHARA_NAME%티아
+			ELSEIF NAME_RAND_ID:1 == 205
+				CHARA_NAME = %CHARA_NAME%디아
+			ELSEIF NAME_RAND_ID:1 == 206
+				CHARA_NAME = %CHARA_NAME%니아
+			ELSEIF NAME_RAND_ID:1 == 207
+				CHARA_NAME = %CHARA_NAME%피아
+			ELSEIF NAME_RAND_ID:1 == 208
+				CHARA_NAME = %CHARA_NAME%미아
+			ELSEIF NAME_RAND_ID:1 == 209
+				CHARA_NAME = %CHARA_NAME%리아
+			ELSEIF NAME_RAND_ID:1 == 210
+				CHARA_NAME = %CHARA_NAME%리카
+			ENDIF
+			NAME_RAND_ID /= 1000
+		WEND
+	ENDIF
+	LOCALS:1 = 
+ENDIF
+
+NAME:CHARA = %CHARA_NAME%
+CALLNAME:CHARA = %CHARA_NAME%
+
+RETURN 0
+
+
+
+
+

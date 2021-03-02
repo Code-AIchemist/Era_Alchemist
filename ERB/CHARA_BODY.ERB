@@ -1,0 +1,672 @@
+﻿;---------------------------------------------------------
+;Era 마왕에서 가져옴.
+;@CHAR_AGE_GENERATE, ARG
+;캐릭터 연령 설정
+;ARG	캐릭터ID
+;--가족기능 반영 못함
+;@RACE_AGE_GENERATE, ARG:0, ARG:1
+;--종족에 따른 인간 나이로 환산 함수 반영 못함
+;---------------------------------------------------------
+@CHAR_AGE_GENERATE, ARG
+
+#DIM CHAR_AGE
+#DIM RACE_AGE
+#DIM LOOP_FLAG
+#DIM LCOUNT
+#DIM KEEP_TARGET
+#DIM BORDER_AGE
+;#DIM FAMILY_TYPE,10
+#DIM DYNAMIC DICE
+
+;TARGET을 잠시 스위치.
+KEEP_TARGET = TARGET
+TARGET = ARG
+
+BORDER_AGE = -1
+
+;가족
+;IF CFLAG:TARGET:604 > 0 && CFLAG:TARGET:605 > 0
+;	FAMILY_TYPE = CFLAG:TARGET:605
+;	FAMILY_TYPE:1 = FAMILY_TYPE % 10
+;	CALL SEARCH_FAMILY, TARGET
+;	FAMILY_TYPE:2 = RESULT
+;	SIF (FAMILY_TYPE:2 >= 0)
+;		BORDER_AGE = CFLAG:(FAMILY_TYPE:2):451
+;ENDIF
+
+LCOUNT = 0
+DO
+;===연령의 산출===
+	CHAR_AGE = RAND:8 + RAND:8 + 13
+	SIF RAND:2 == 0
+		CHAR_AGE += RAND:13
+;추가 부분
+;자식이 있는 부모		어린애보다 젊어서는 안 된다
+;	IF (FAMILY_TYPE:1 == 7 || FAMILY_TYPE:1 == 8) && BORDER_AGE >= 0
+;		SIF BORDER_AGE + 12 > CHAR_AGE
+;			CHAR_AGE = BORDER_AGE + 12 + RAND:6
+;	ENDIF
+
+	LOOP_FLAG = 0
+
+;경력 등에서 나이를 수정
+
+;장신			관련 높임
+	SIF TALENT:131 == 1 && RAND:15 < CHAR_AGE - 12
+		LOOP_FLAG = 1
+
+;작은체형		관련낮음
+	SIF TALENT:131 == -1 && RAND:50 < 17 - CHAR_AGE
+		LOOP_FLAG = 2
+
+;작은 체형 이하 경우의 낮은 연령을 억제
+;			관련높임
+	SIF TALENT:131 >= 0 && RAND:15 < 17 - CHAR_AGE
+		LOOP_FLAG = 3
+
+;빈유			관련낮음
+	SIF TALENT:132 == -1 && RAND:50 < 17 - CHAR_AGE
+		LOOP_FLAG = 4
+
+;거유			관련낮음
+	SIF TALENT:132 == 1 && RAND:50 < CHAR_AGE - 12
+		LOOP_FLAG = 5
+
+;폭유・초유			관련중간
+	SIF TALENT:132 >= 2 && RAND:30 < CHAR_AGE - 12
+		LOOP_FLAG = 6
+
+;절벽			관련중간
+	SIF TALENT:132 == -2 && RAND:30 < 17 - CHAR_AGE
+		LOOP_FLAG = 7
+
+;미숙			관련중간
+	SIF TALENT:202 && RAND:30 < CHAR_AGE - 12
+		LOOP_FLAG = 8
+
+;유부녀			관련중간
+	SIF TALENT:228 && RAND:30 < 17 - CHAR_AGE
+		LOOP_FLAG = 9
+
+;근육질			관련높임
+	SIF TALENT:140 && RAND:15 < 17 - CHAR_AGE
+		LOOP_FLAG = 10
+
+;창부
+	IF TALENT:261 == 1
+
+;통상적인 창녀		관련중간
+		IF TALENT:1 == 1 && RAND:30 < 17 - CHAR_AGE
+			LOOP_FLAG = 11
+
+;애널창부		관련낮음
+		ELSEIF TALENT:1 == 0 && TALENT:2 == 1 && RAND:50 < 17 - CHAR_AGE
+			LOOP_FLAG = 12
+
+;V처녀, A처녀 창부		관련중간
+        ELSEIF TALENT:1 == 0 && TALENT:2 == 0 && RAND:30 < 17 - CHAR_AGE
+            LOOP_FLAG = 13
+		ENDIF
+	ENDIF
+
+;로리콘		관련중간
+	SIF TALENT:198 && RAND:30 < 17 - CHAR_AGE
+		LOOP_FLAG = 14
+
+;쇼타콘		관련중간
+	SIF TALENT:199 && RAND:30 < 17 - CHAR_AGE
+		LOOP_FLAG = 15
+
+
+;자위경험		관련낮음
+	SIF EXP:22 && RAND:50 < 17 - CHAR_AGE
+		LOOP_FLAG = 16
+
+;출산경험		관련높임
+	SIF EXP:81 && RAND:15 < 17 - CHAR_AGE
+		LOOP_FLAG = 17
+
+;군인			관련높임
+;	SIF TALENT:315 == 19 && RAND:15 < 17 - CHAR_AGE
+;		LOOP_FLAG = 14
+
+;고향의 연인		관련높임
+;	SIF TALENT:317 == 4 && RAND:15 < 17 - CHAR_AGE
+;		LOOP_FLAG = 15
+
+	LCOUNT += 1
+	IF LCOUNT > 100
+		IF BORDER_AGE > 0
+			CHAR_AGE = BORDER_AGE + 12 + RAND:6
+		ELSE
+			CHAR_AGE = RAND:7 + 12
+		ENDIF
+		BREAK
+	ENDIF
+LOOP LOOP_FLAG
+
+;딸아이 몫만 더 먹음
+;SIF CHAR_AGE < (BORDER_AGE + 12)
+;	CHAR_AGE += BORDER_AGE
+
+;CALL RACE_AGE_GENERATE, CHAR_AGE, TALENT:314
+;RACE_AGE = RESULT
+
+;TARGET을 원위치
+TARGET = KEEP_TARGET
+
+;RETURN CHAR_AGE, RACE_AGE
+RETURN CHAR_AGE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+;---------------------------------------------------------
+;Era 마왕에서 가져옴.
+;@RACE_AGE_GENERATE, ARG:0, ARG:1
+; 캐릭터의 종족 나이를 설정
+; ARG : 0     인간 환산 나이
+; ARG : 1     TALENT : 314의 수치
+;함수 전체를 아직 적용 못함.
+;---------------------------------------------------------
+@RACE_AGE_GENERATE, ARG:0, ARG:1
+;1 엘프	0
+;2 인랑		1
+;3 흡혈귀	2
+;4 듀라한	3
+;5 드래곤	4
+;6 천사		5
+;10 호빗	6
+;11 드워프	7
+#DIM RACE_ID
+#DIM RACE_AGE
+#DIM RACE_CLA
+#DIM RACE_NUM
+#DIM RACE_DEG
+#DIM CAL_VAR, 2
+
+
+;一応堕落種族は別
+IF ARG:1 >= 7 && ARG:1 < 10
+;다크엘프
+	SIF ARG:1 == 7
+		RACE_ID = 0
+;타천사
+	SIF ARG:1 == 8
+		RACE_ID = 5
+;마족
+;細かいところは判定しようがないので人間換算年齢を返す
+	RETURN ARG:0
+
+ELSE
+;種族IDから処理用の数値へ
+	RACE_ID = ARG:1 - 1
+	SIF RACE_ID > 8
+		RACE_ID -= 3
+ENDIF
+
+;コンフィグで設定された種族ごとの設定値を取得
+IF RACE_ID < 0
+	RACE_CLA = 1
+ELSEIF RACE_ID > 5
+	RACE_CLA = FLAG:27 / POWER(1000, (RACE_ID - 6)) % 1000
+ELSE
+	RACE_CLA = FLAG:26 / POWER(1000, (RACE_ID)) % 1000
+ENDIF
+
+RACE_DEG = RACE_CLA / 10 % 10
+RACE_NUM = RACE_CLA % 10
+RACE_CLA = RACE_CLA / 100
+
+;年齢の整数倍
+IF RACE_CLA == 0
+	RACE_AGE = ARG:0 * RACE_NUM * POWER(10, RACE_DEG) + RAND:(RACE_NUM * POWER(10, RACE_DEG))
+;年齢の小数倍
+ELSEIF RACE_CLA == 1
+	RACE_AGE = ARG:0 * (RACE_DEG * 10 + RACE_NUM) / 10
+;0～上限
+ELSEIF RACE_CLA == 2
+;桁の出方を偏らせてみる
+	CAL_VAR:0 = RACE_NUM * POWER(10, RACE_DEG)
+	STRLENFORM {CAL_VAR:0}
+	CAL_VAR:1 = POWER(10, RAND:(RESULT + 1)) * 10
+	SIF CAL_VAR:0 > CAL_VAR:1
+		CAL_VAR:0 = CAL_VAR:1
+	RACE_AGE = RAND:(CAL_VAR:0)
+;上限 / 2～上限
+ELSEIF RACE_CLA == 3
+	RACE_AGE = RAND:(RACE_NUM * POWER(10, RACE_DEG) / 2) + RACE_NUM * POWER(10, RACE_DEG) / 2
+;年齢～上限
+ELSEIF RACE_CLA == 4
+;桁の出方を偏らせてみる
+;	RACE_AGE = RAND:(RACE_NUM * POWER(10, RACE_DEG) - ARG:0) + ARG:0
+	CAL_VAR:0 = (RACE_NUM * POWER(10, RACE_DEG))
+	STRLENFORM {CAL_VAR:0}
+	RACE_AGE = 10
+	FOR CAL_VAR:1, 0, RESULT + 1
+		IF RAND:5 < 2
+			BREAK
+		ELSE
+			RACE_AGE *= 10
+		ENDIF
+	NEXT
+	SIF RACE_AGE > CAL_VAR:0
+		RACE_AGE = CAL_VAR:0
+	SIF ARG:0 > RACE_AGE
+		RACE_AGE = ARG:0 + 1
+	RACE_AGE = RAND:(RACE_AGE - ARG:0) + ARG:0
+ENDIF
+
+RETURN RACE_AGE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+;---------------------------------------------------------
+;Era 마왕에서 가져옴
+;@CHAR_SIZE_GENERATE, ARG:0, ARG:1, ARG:2
+;캐릭터의 신장 등을 설정
+; ARG : 0 캐릭터 ID
+; ARG : 1 캐릭터의 나이 (필수 아님)
+; ARG : 2 크기 조정 모드 ... 0 : 보통 용 1 : 가슴변화
+;종족에 따른 변화 적용X
+;---------------------------------------------------------
+@CHAR_SIZE_GENERATE, ARG:0, ARG:1, ARG:2
+
+#DIM CHAR_AGE
+;#DIM RACE_AGE
+#DIM CHAR_HEIGHT
+#DIM CHAR_WEIGHT
+#DIM CHAR_BUST
+#DIM CHAR_BUST_T
+#DIM CHAR_BUST_U
+#DIM CHAR_WAIST
+#DIM CHAR_HIP
+#DIM LCOUNT
+#DIM CAL_VAR
+
+#DIM HEIGHT_MAX
+#DIM HEIGHT_MIN
+
+#DIM KEEP_TARGET
+
+;TARGET을 대피
+KEEP_TARGET = TARGET
+TARGET = ARG:0
+
+;가슴변화 호출되면 가슴의 곳까지 GO
+IF ARG:2 == 1
+	CHAR_AGE = ARG:1
+	CHAR_HEIGHT = (CFLAG:(ARG:0):32) * 100
+	GOTO CALC_BUST
+ENDIF
+
+;--신장 최저최대
+HEIGHT_MAX = 170000
+HEIGHT_MIN = 150000
+
+;난쟁이
+IF TALENT:131 == -3
+	HEIGHT_MAX = 60000
+	HEIGHT_MIN = 0
+ENDIF
+
+;유아 체형
+IF TALENT:131 == -2
+	HEIGHT_MAX = 130000
+	HEIGHT_MIN = 60000
+ENDIF
+
+;작은 체형
+IF TALENT:131 == -1
+	HEIGHT_MAX = 150000
+	HEIGHT_MIN = 130000
+ENDIF
+
+;장신
+IF TALENT:131 == 1
+	HEIGHT_MAX = 200000
+	HEIGHT_MIN = 170000
+ENDIF
+
+;거구
+IF TALENT:131 == 2
+	HEIGHT_MAX = 300000
+	HEIGHT_MIN = 200000
+ENDIF
+
+;거인
+IF TALENT:131 == 3
+	HEIGHT_MAX = 999000
+	HEIGHT_MIN = 400000
+ENDIF
+
+DO
+;===나이 계산===
+
+	IF ARG:1
+		CHAR_AGE = ARG:1
+	ELSE
+		CALL CHAR_AGE_GENERATE, ARG:0
+		CHAR_AGE = RESULT:0
+		;RACE_AGE = RESULT:1
+	ENDIF
+
+;체형 소질에 부합하는 키가 나올 때까지 여러 번 루프
+	FOR LCOUNT, 0, 5
+;===신장의 산출===
+;난수 값 + 성별에 따른 기초가 신장이다
+		IF TALENT:0 == 1
+			CHAR_HEIGHT = 160000
+		ELSE
+			SELECTCASE TALENT:131
+				CASE -3
+					CHAR_HEIGHT = 30000 + (RAND:34 + RAND:34 + RAND:34) * 100
+				CASE -2
+					CHAR_HEIGHT = 50000 + (RAND:62 + RAND:62 + RAND:62) * 100
+				CASE -1
+					CHAR_HEIGHT = 110000 + (RAND:134 + RAND:134 + RAND:133) * 100
+				CASE 0
+					CHAR_HEIGHT = 125000 + (RAND:150 + RAND:145 + RAND:145) * 100
+				CASE 1
+					CHAR_HEIGHT = 160000 + (RAND:162 + RAND:162 + RAND:171) * 100
+				CASE 2
+					CHAR_HEIGHT = 190000 + (RAND:352 + RAND:352 + RAND:361) * 100
+				CASE 3
+					CHAR_HEIGHT = 400000 + (RAND:1500 + RAND:1500 + RAND:1500) * 100
+			ENDSELECT
+			;SIF RAND:5 == 0
+			;	CHAR_HEIGHT += RAND:100 * 100
+			;SIF RAND:5 == 0
+			;	CHAR_HEIGHT -= RAND:100 * 100
+		ENDIF
+
+;엘프는 키가 큼
+;		SIF TALENT:314 == 1
+;			CHAR_HEIGHT += (RAND:8 * 1000)
+
+;드래곤은 키 매우 큼
+;		SIF TALENT:314 == 5
+;			CHAR_HEIGHT += RAND:16 * 1000
+
+;다크엘프는 키가 큼
+;		SIF TALENT:314 == 7
+;			CHAR_HEIGHT += RAND:8 * 1000
+
+;호빗은 키가 작음
+;		SIF TALENT:314 == 10
+;			CHAR_HEIGHT -= RAND:8 * 1000
+
+;드워프는 키가 작음
+;		SIF TALENT:314 == 11
+;			CHAR_HEIGHT -= RAND:8 * 1000
+
+;연령 보정(1부터 17까지를 보정)
+		IF CHAR_AGE < 13
+			CHAR_HEIGHT = CHAR_HEIGHT * (18 + CHAR_AGE) / 32
+		ELSEIF CHAR_AGE == 13
+			CHAR_HEIGHT = CHAR_HEIGHT * 77 / 80
+		ELSEIF CHAR_AGE < 18
+			CHAR_HEIGHT = CHAR_HEIGHT * (160 - CHAR_AGE) / 160
+		ENDIF
+
+;신장 결정
+		CHAR_HEIGHT += (250 + RAND:20 + RAND:20 + RAND:20 + RAND:20 + RAND:200) * 100
+		;체형 소질에 합치한 시점에서 루프를 빼는
+		SIF CHAR_HEIGHT >= HEIGHT_MIN && CHAR_HEIGHT < HEIGHT_MAX
+			BREAK
+	NEXT
+
+;여러 번 루프해도 합치하지 않으면 연령부터 재검토
+LOOP CHAR_HEIGHT <= HEIGHT_MIN || CHAR_HEIGHT >= HEIGHT_MAX
+
+;===웨스트의 산출===
+;웨스트의 기초값 산출
+CHAR_WAIST = (CHAR_HEIGHT * (3700 + TALENT:142)) / 10000
+;비현실 보정
+SIF CHAR_WAIST > 60000
+	CHAR_WAIST = CHAR_WAIST * 983 / 1000
+;소질에 의한 수정
+;매력, 매혹 
+SIF TALENT:121 || TALENT:122
+	CHAR_WAIST = CHAR_WAIST * 96 /100
+;근육질
+SIF TALENT:140
+	CHAR_WAIST = CHAR_WAIST * 102 /100
+;허약
+SIF +TALENT:141
+	CHAR_WAIST = CHAR_WAIST * 98 /100
+;드워프를 절구통 같이
+;SIF TALENT:314 == 11
+;	CHAR_WAIST = CHAR_WAIST * 104 /100
+
+;웨스트 결정
+
+;===가슴의 산출===
+;언더바스트 산출
+$CALC_BUST
+
+CALL UNDER_BUST, ARG:0, CHAR_HEIGHT / 100
+CHAR_BUST_U = RESULT * 100
+
+;가슴계 소질로 기초치 변화
+
+;절벽 크기 지정
+IF TALENT:132 == -2
+	CHAR_BUST_T = 1000 + RAND:40 * 100
+;빈유 크기 지정
+ELSEIF TALENT:132 == -1
+	CHAR_BUST_T = 7000 + RAND:60 * 100
+;거유 크기 지정
+ELSEIF TALENT:132 > 0
+	CHAR_BUST_T = 20000 + RAND:2500
+;폭유 크기 지정
+	IF TALENT:132 == 2
+		CHAR_BUST_T += 5000 + RAND:5000
+;랜덤으로 더욱 거하게
+;		IF RAND:2 == 0
+;			CHAR_BUST_T += 18000 + RAND:2000 + RAND:2000 + RAND:3000
+;		ENDIF
+;초유 크기 지정
+	ELSEIF TALENT:132 == 3
+		;폭유의 랜덤을 이쪽으로
+		CHAR_BUST_T += 5000 + RAND:5000
+		CHAR_BUST_T += 18000 + RAND:2000 + RAND:2000 + RAND:3000
+	ENDIF
+;젖가슴 크기 지정
+ELSE
+	CHAR_BUST_T = 13200 + RAND:40 * 100
+ENDIF
+
+;몸집이 작다고 빈유라고도 할 수 없지 보정 (거유 미만)
+SIF TALENT:131 < 0 && TALENT:132 > 0
+	CHAR_BUST_T += 1500 + RAND:1000
+;몸집이 클 때의 마이너스 보정
+SIF TALENT:131 > 0
+	CHAR_BUST_T -= 2000 + RAND:1000
+;출산 경험이 있으면 미량으로 치수 보정
+SIF EXP:81 > 0
+	CHAR_BUST_T += 200 + RAND:800
+;연령 보정(미량)
+SIF CHAR_AGE < 16
+	CHAR_BUST_T -= 2000 - CHAR_AGE * 100
+;가슴 결정
+CHAR_BUST = CHAR_BUST_U + CHAR_BUST_T
+
+;가슴 변화를 위해 날아오신 분, 다음은 체중 측정이에요
+SIF ARG:2 == 1
+	GOTO CALC_WEIGHT
+
+;===힙의 산출===
+;힙 기초값 산출
+CHAR_HIP = (CHAR_HEIGHT * (5300 + TALENT:308)) / 10000
+
+;매력,매혹
+SIF TALENT:121 || TALENT:122
+	CHAR_HIP += 1500
+;근육질
+SIF TALENT:140
+	CHAR_HIP = CHAR_HIP * 102 /100
+;허약
+SIF TALENT:141
+	CHAR_HIP = CHAR_HIP * 98 /100
+;작은 체형은 다소 작게 보정 해 본다
+SIF TALENT:131 < 0
+	TIMES CHAR_HIP , 0.96
+;힙 결정
+
+;===체중의 산출===
+$CALC_WEIGHT
+;BMIを基準に基本値を算出
+CHAR_WEIGHT = CHAR_HEIGHT * CHAR_HEIGHT * 21 / (1250 - TALENT:142) / 10000
+
+;근육질
+SIF TALENT:140
+	CHAR_WEIGHT = CHAR_WEIGHT * 107 /100
+;허약
+SIF TALENT:141
+	CHAR_WEIGHT = CHAR_WEIGHT * 98 /100
+
+;가슴으로 중량 가산(오버플로 대책 소분)
+CAL_VAR = CHAR_BUST_U * CHAR_BUST_U / 100000000
+CAL_VAR = CAL_VAR * CHAR_BUST_T / 100000
+CAL_VAR = CAL_VAR * CHAR_BUST_T / 100000
+
+;합계
+CHAR_WEIGHT = CHAR_WEIGHT + CAL_VAR
+;체중 결정
+
+;가슴 변화는 체중과 가슴 수치를 가지고 리턴
+SIF ARG:2 == 1
+	RETURN CHAR_WEIGHT / 100, CHAR_BUST / 100
+
+;종족 연령의 설정
+;SIF TALENT:314 == 0
+;	RACE_AGE = CHAR_AGE
+
+;TARGET 원위치
+TARGET = KEEP_TARGET
+
+;RETURN CHAR_AGE, RACE_AGE, CHAR_HEIGHT / 100, CHAR_WEIGHT / 100, CHAR_BUST / 100, CHAR_WAIST / 100, CHAR_HIP / 100
+RETURN CHAR_AGE, CHAR_HEIGHT / 100, CHAR_WEIGHT / 100, CHAR_BUST / 100, CHAR_WAIST / 100, CHAR_HIP / 100
+
+;---------------------------------------------------------
+;@UNDER_BUST, ARG:0, ARG:1
+;캐릭터의 언더바스트를 계산
+;ARG: 0 캐릭터 ID
+;ARG: 1 캐릭터의 키
+;---------------------------------------------------------
+@UNDER_BUST, ARG:0, ARG:1
+
+#DIM CHAR_BUST_U
+CHAR_BUST_U = ARG:1 * (43100 + TALENT:(ARG:0):142) / 100000
+
+;근육질
+SIF TALENT:(ARG:0):140
+	CHAR_BUST_U = CHAR_BUST_U * 105 /100
+;허약
+SIF TALENT:(ARG:0):141
+	CHAR_BUST_U = CHAR_BUST_U * 98 /100
+
+RETURN CHAR_BUST_U
+
+;---------------------------------------------------------
+;@CUP_SIZE, ARG
+;캐릭터 컵 사이즈를 계산
+;ARG 캐릭터ID
+;---------------------------------------------------------
+@CUP_SIZE, ARG
+
+#DIM CAL_VAR
+
+CALL UNDER_BUST, ARG, CFLAG:ARG:32
+
+CAL_VAR = (CFLAG:ARG:34 - RESULT) / 25
+SIF CAL_VAR <= 1
+	RESULTS:0 = -
+SIF CAL_VAR == 2
+	RESULTS:0 = AAA
+SIF CAL_VAR == 3
+	RESULTS:0 = AA
+SIF CAL_VAR == 4
+	RESULTS:0 = A
+SIF CAL_VAR == 5
+	RESULTS:0 = B
+SIF CAL_VAR == 6
+	RESULTS:0 = C
+SIF CAL_VAR == 7
+	RESULTS:0 = D
+SIF CAL_VAR == 8
+	RESULTS:0 = E
+SIF CAL_VAR == 9
+	RESULTS:0 = F
+SIF CAL_VAR == 10
+	RESULTS:0 = G
+SIF CAL_VAR == 11
+	RESULTS:0 = H
+SIF CAL_VAR == 12
+	RESULTS:0 = I
+SIF CAL_VAR == 13
+	RESULTS:0 = J
+SIF CAL_VAR == 14
+	RESULTS:0 = K
+SIF CAL_VAR == 15
+	RESULTS:0 = L
+SIF CAL_VAR == 16
+	RESULTS:0 = M
+SIF CAL_VAR == 17
+	RESULTS:0 = N
+SIF CAL_VAR == 18
+	RESULTS:0 = O
+SIF CAL_VAR == 19
+	RESULTS:0 = P
+SIF CAL_VAR == 20
+	RESULTS:0 = Q
+SIF CAL_VAR == 21
+	RESULTS:0 = R
+SIF CAL_VAR == 22
+	RESULTS:0 = S
+SIF CAL_VAR == 23
+	RESULTS:0 = T
+SIF CAL_VAR == 24
+	RESULTS:0 = U
+SIF CAL_VAR == 25
+	RESULTS:0 = V
+SIF CAL_VAR == 26
+	RESULTS:0 = W
+SIF CAL_VAR == 27
+	RESULTS:0 = X
+SIF CAL_VAR == 28
+	RESULTS:0 = Y
+SIF CAL_VAR == 29
+	RESULTS:0 = Z
+
+RETURN 0
+
+
+

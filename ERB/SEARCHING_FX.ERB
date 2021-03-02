@@ -1,0 +1,369 @@
+﻿;---------------------------------------
+;@SEARCH_NEAR, FIELD_LEVEL
+;탐색중
+;COLLECT_ITEM_KIND,10
+;채집 가능한 아이템 종류
+;COLLECT_ITEM_PROBABILITY,10
+;아이템들 드랍률
+;---------------------------------------
+@SEARCH_NEAR, FIELD_LEVEL
+#DIM DYNAMIC SUM_PROBABILITY = 0
+#DIM DYNAMIC RAND_NUM
+#DIM DYNAMIC HOW_MANY
+;채집 1회당 총 획득량
+#DIM DYNAMIC SEARCH_COUNT
+;탐색 카운트
+#DIM DYNAMIC FIELD_LEVEL
+;레벨에 따른 추가 보너스
+#DIM DYNAMIC KILL_FLAG
+
+SUM_PROBABILITY = SUMARRAY(COLLECT_ITEM_PROBABILITY, 0,10)
+
+IF SUM_PROBABILITY != 100
+    PRINTW 채집 확률 합계 오류
+    RETURN 0
+ENDIF
+
+FOR SEARCH_COUNT,0,5
+;탐색을 5회 진행함.
+
+    PRINTW  탐색중.....................
+    PRINTL
+    RAND_NUM = RAND:100
+    SUM_PROBABILITY = 0
+
+    REPEAT 10
+        IF SUM_PROBABILITY <= RAND_NUM && RAND_NUM < SUM_PROBABILITY + COLLECT_ITEM_PROBABILITY:COUNT
+        ;정답 찾기
+            IF COLLECT_ITEM_KIND:COUNT == 0
+            ;'꽝'일 경우
+                PRINTW .............탐색실패
+                PRINTL
+            ELSEIF COLLECT_ITEM_KIND:COUNT == 2999
+            ;적 발견
+                CALL MEET_ENEMY, FIELD_LEVEL
+                KILL_FLAG = RESULT
+                SIF GAME_OVER_FLAG == 1
+                ;게임오버니까 빨리 나가
+                    RETURN 0
+            ELSE
+                ;ABL:MASTER:53 = 채집기능
+                ;(RAND:21+FIELD_LEVEL/10) - 운빨 추가 획득
+                HOW_MANY = 1 + (ABL:MASTER:73/3) + ((RAND:21+FIELD_LEVEL)/10) + (FIELD_LEVEL/5)
+                IF ITEM:(COLLECT_ITEM_KIND:COUNT) + HOW_MANY < 100
+                    ITEM:(COLLECT_ITEM_KIND:COUNT) += HOW_MANY
+                ELSE
+                    ITEM:(COLLECT_ITEM_KIND:COUNT) = 99
+                ENDIF
+                PRINT ★★★★★
+                PRINTFORM %ITEMNAME:(COLLECT_ITEM_KIND:COUNT)% {HOW_MANY}개 발견
+                PRINTW ★★★★★
+                PRINTL
+            ENDIF
+            ;찾았으니 나가기
+            BREAK
+        ELSE
+            ;다음 확률 찾기
+            SUM_PROBABILITY += COLLECT_ITEM_PROBABILITY:COUNT
+        ENDIF
+    REND
+
+    IF KILL_FLAG == 1
+    ;승리
+        PRINTL
+        PRINTL  적을 물리쳤다!
+        CALL ROOTING_ITEM, RESULT, FIELD_LEVEL
+    ENDIF
+NEXT
+
+;행동틱 2 소모
+FLAG:0 = 2
+
+;---------------------------------------
+;@MEET_ENEMY, FIELD_LEVEL
+;적과 만남
+;#DIM ENEMY_KIND,10
+;적 종류
+;#DIM ENEMY_PROBABILITY,10
+;적 출현 확률
+;#DIM FIELD_LEVEL
+;지역의 레벨
+;---------------------------------------
+@MEET_ENEMY, FIELD_LEVEL
+#DIM DYNAMIC FIELD_LEVEL
+#DIM DYNAMIC RAND_NUM
+#DIM DYNAMIC SUM_PROBABILITY
+#DIM DYNAMIC FOR_NUM
+
+REPEAT 10
+    SUM_PROBABILITY += COLLECT_ITEM_PROBABILITY:COUNT
+REND
+IF SUM_PROBABILITY != 100
+    PRINTW 채집 확률 합계 오류
+    RETURN 0
+ENDIF
+
+HOW_MANY_ENEMY = 1 + RAND:10
+IF HOW_MANY_ENEMY < 7
+    HOW_MANY_ENEMY = 1
+    ;60%확률로 1마리
+ELSEIF HOW_MANY_ENEMY < 10
+    HOW_MANY_ENEMY = 2
+    ;30%확률로 2마리
+ELSEIF HOW_MANY_ENEMY == 10
+    HOW_MANY_ENEMY = 3
+    ;10%확률로 3마리
+ENDIF
+;전투 할 몬스터 수 랜덤값 구하기
+;HOW_MANY_ENEMY = 3
+
+FOR FOR_NUM,0,HOW_MANY_ENEMY
+    RAND_NUM = RAND:100
+    SUM_PROBABILITY = 0
+    REPEAT 10
+        IF SUM_PROBABILITY <= RAND_NUM && RAND_NUM < SUM_PROBABILITY + ENEMY_PROBABILITY:COUNT
+            ;확률에 걸린 몬스터 찾기
+            FIGHTING_ENEMY_NUM:FOR_NUM = ENEMY_KIND:COUNT
+            ;찾음
+            BREAK
+        ENDIF
+        ;못찾음 다음 확률 찾기
+        SUM_PROBABILITY += ENEMY_PROBABILITY:COUNT
+    REND
+NEXT
+
+CALL FIGHT_ENEMY, FIELD_LEVEL
+IF BASE:MASTER:0 <= 0
+    GAME_OVER_FLAG = 1
+    RETURN 0
+ELSE
+    RETURN 1
+ENDIF
+
+;---------------------------------------
+;@FIGHT_ENEMY
+;적과 전투
+;#DIM CONST LIMIT_ENEMY = 3
+;적들 수 제한
+;#DIM FIGHTING_ENEMY_NUM, LIMIT_ENEMY
+;전투중인 적들 번호
+;#DIM HOW_MANY_ENEMY
+;전투중인 적들 수
+;ABL : 46,47,48   /   공격,방어,마력
+;@GIVE_RAND_ITEM_NUM, RAND_MIN, RAND_MAX
+;주어진 최소 이상, 최대 미만에서 아이템넘버 랜덤값 구하기
+;---------------------------------------
+@FIGHT_ENEMY, FIELD_LEVEL
+#DIM DYNAMIC FIELD_LEVEL
+#DIM DYNAMIC MAX_ENEMY_HP, LIMIT_ENEMY
+#DIM DYNAMIC MAX_ENEMY_MP, LIMIT_ENEMY
+#DIM DYNAMIC ENEMY_HP, LIMIT_ENEMY
+#DIM DYNAMIC ENEMY_MP, LIMIT_ENEMY
+#DIM DYNAMIC ENEMY_ATK, LIMIT_ENEMY
+#DIM DYNAMIC ENEMY_DEF, LIMIT_ENEMY
+#DIM DYNAMIC HP_DAMAGE
+#DIM DYNAMIC FIGHT_TURN
+;전투 턴 횟수
+#DIM DYNAMIC RAND_CRI
+;크리 성공여부
+#DIM DYNAMIC RAND_AVOID
+;회피 성공여부
+#DIM DYNAMIC TARGET_ENEMY
+;공격할 적
+#DIM DYNAMIC MANY_ENEMY_TURN
+;몬스터의 턴. 몬스터 수만큼 차례로 공격함.
+
+;줄일수록 확률 늘어남.
+#DIM DYNAMIC RAND_NUM_1 = 10
+;크리티컬 확률
+#DIM DYNAMIC RAND_NUM_2 = 10
+;회피율
+
+REPEAT HOW_MANY_ENEMY
+    CALL GIVE_RAND_ITEM_NUM, FIELD_LEVEL, FIELD_LEVEL*2
+    ENEMY_HP:COUNT = 1*((FIGHTING_ENEMY_NUM:COUNT)-1900 + FIELD_LEVEL) * 2 + RESULT
+    CALL GIVE_RAND_ITEM_NUM, FIELD_LEVEL, FIELD_LEVEL*2
+    ENEMY_MP:COUNT = 1*((FIGHTING_ENEMY_NUM:COUNT)-1900 + FIELD_LEVEL) + RESULT
+    CALL GIVE_RAND_ITEM_NUM, FIELD_LEVEL, FIELD_LEVEL*2
+    ENEMY_ATK:COUNT = 1*((FIGHTING_ENEMY_NUM:COUNT)-1900 + FIELD_LEVEL) + RESULT
+    CALL GIVE_RAND_ITEM_NUM, FIELD_LEVEL, FIELD_LEVEL*2
+    ENEMY_DEF:COUNT = 1*((FIGHTING_ENEMY_NUM:COUNT)-1900 + FIELD_LEVEL) / 3 + RESULT
+
+    MAX_ENEMY_HP:COUNT = ENEMY_HP:COUNT
+    MAX_ENEMY_MP:COUNT = ENEMY_MP:COUNT
+REND
+
+
+WHILE BASE:MASTER:0 > 0 && ENEMY_HP > 0
+    ;전투페이지 드로잉
+    IF FLAG:25 == 0
+        FIGHT_TURN += 1
+        DRAWLINE
+        PRINTFORML  제 {FIGHT_TURN}턴
+        DRAWLINE
+
+        ;이름
+        PRINT  
+        REPEAT HOW_MANY_ENEMY
+            PRINTFORMLC %STR:(FIGHTING_ENEMY_NUM:COUNT)%
+            ;IF COUNT != HOW_MANY_ENEMY-1
+        REND
+        PRINTL
+        
+        ;HP
+        PRINT  
+        REPEAT HOW_MANY_ENEMY
+            BARSTR ENEMY_HP:COUNT,MAX_ENEMY_HP:COUNT,5
+            PRINTFORMLC HP%RESULTS%
+        REND
+        PRINTL
+        
+        ;MP
+        PRINT  
+        REPEAT HOW_MANY_ENEMY
+            BARSTR ENEMY_MP:COUNT,MAX_ENEMY_MP:COUNT,5
+            PRINTFORMLC MP%RESULTS%
+        REND
+        PRINTL
+        
+        ;공격
+        PRINT  
+        REPEAT HOW_MANY_ENEMY
+            PRINTFORMLC 공 : {ENEMY_ATK:COUNT}
+        REND
+        PRINTL
+        
+        ;방어
+        PRINT  
+        REPEAT HOW_MANY_ENEMY
+            PRINTFORMLC 방 : {ENEMY_DEF:COUNT}
+        REND
+        PRINTL
+        
+        DRAWLINE
+        PRINTL VS
+        DRAWLINE
+        
+        ;이름
+        PRINTFORM  %CALLNAME:MASTER%
+        PRINTL
+        ;HP
+        PRINT  HP
+        BAR BASE:MASTER:0,MAXBASE:MASTER:0,5
+        PRINTL
+        ;MP
+        PRINT  MP
+        BAR BASE:MASTER:1,MAXBASE:MASTER:1,5
+        PRINTL
+        ;공격
+        PRINTFORM  공 : {ABL:MASTER:91}
+        PRINTL
+        ;방어
+        PRINTFORM  방 : {ABL:MASTER:92}
+        PRINTL
+        DRAWLINE
+        PRINTW
+    ENDIF
+
+    ;플레이어 선공
+    RAND_CRI = RAND:RAND_NUM_1
+    RAND_AVOID = RAND:RAND_NUM_2
+    IF RAND_AVOID == RAND:RAND_NUM_2 - 1
+    ;회피!
+        SIF FLAG:25 == 0
+            PRINTFORML  %STR:(FIGHTING_ENEMY_NUM:TARGET_ENEMY)%이 %CALLNAME:MASTER%의 공격을 회피했다!
+    ELSE
+    ;맞음
+        IF RAND_CRI == RAND:RAND_NUM_1 - 1
+        ;치명타!
+            IF ABL:MASTER:91 > ENEMY_DEF:TARGET_ENEMY
+                HP_DAMAGE = (ABL:MASTER:91 - ENEMY_DEF:TARGET_ENEMY) * 2
+            ELSE
+                HP_DAMAGE = 0
+            ENDIF
+            SIF FLAG:25 == 0
+                PRINTFORML  %CALLNAME:MASTER%의 회심의 일격! %STR:(FIGHTING_ENEMY_NUM:TARGET_ENEMY)%은 {HP_DAMAGE}데미지를 받았다!
+        ELSE 
+        ;일반공격
+            IF ABL:MASTER:91 > ENEMY_DEF:TARGET_ENEMY
+                HP_DAMAGE = (ABL:MASTER:91 - ENEMY_DEF:TARGET_ENEMY) 
+            ELSE
+                HP_DAMAGE = 0
+            ENDIF
+            SIF FLAG:25 == 0
+                PRINTFORML  %CALLNAME:MASTER%의 공격! %STR:(FIGHTING_ENEMY_NUM:TARGET_ENEMY)%은 {HP_DAMAGE}데미지를 받았다!
+        ENDIF
+        ENEMY_HP:TARGET_ENEMY -= HP_DAMAGE
+    ENDIF
+    
+    ;한놈이 죽었을 경우, 다음 타겟 지정.
+    ;맨 끝 놈이 죽었을 경우, WHILE 아웃.
+    IF ENEMY_HP:(HOW_MANY_ENEMY-1) <= 0 
+        BREAK
+    ELSEIF ENEMY_HP:TARGET_ENEMY <= 0
+        TARGET_ENEMY += 1
+    ENDIF
+
+    ;몬스터의 공격
+    FOR MANY_ENEMY_TURN, 0, (HOW_MANY_ENEMY-TARGET_ENEMY)
+        RAND_CRI = RAND:RAND_NUM_1
+        RAND_AVOID = RAND:RAND_NUM_2
+        IF RAND_AVOID == RAND:RAND_NUM_2-1
+        ;회피!
+            SIF FLAG:25 == 0
+                PRINTFORML  %CALLNAME:MASTER%은 %STR:(FIGHTING_ENEMY_NUM:TARGET_ENEMY)%의 공격을 회피했다!
+        ELSE
+        ;맞음
+            IF RAND_CRI == RAND:RAND_NUM_1-1
+            ;치명타!
+                IF ENEMY_ATK:TARGET_ENEMY > ABL:MASTER:92
+                    HP_DAMAGE = (ENEMY_ATK:TARGET_ENEMY - ABL:MASTER:92) * 2
+                ELSE
+                    HP_DAMAGE = 0
+                ENDIF
+                SIF FLAG:25 == 0
+                    PRINTFORML  %STR:(FIGHTING_ENEMY_NUM:TARGET_ENEMY)%의 회심의 일격! %CALLNAME:MASTER%은 {HP_DAMAGE}데미지를 받았다!
+            ELSE 
+            ;일반공격
+                IF ENEMY_ATK:TARGET_ENEMY > ABL:MASTER:92
+                    HP_DAMAGE = ENEMY_ATK:TARGET_ENEMY - ABL:MASTER:92
+                ELSE
+                    HP_DAMAGE = 0
+                ENDIF
+                SIF FLAG:25 == 0
+                    PRINTFORML  %STR:(FIGHTING_ENEMY_NUM:TARGET_ENEMY)%의 공격! %CALLNAME:MASTER%은 {HP_DAMAGE}데미지를 받았다!
+            ENDIF
+        ENDIF
+        BASE:MASTER:0 -= HP_DAMAGE
+    NEXT
+WEND
+
+;---------------------------------------
+;@ROOTING_ITEM, ENEMY_NUM, FIELD_LEVEL
+;#DIM SAVEDATA TRAINING_BODY_EXP
+;육체 단련 EXP
+;아이템 루팅
+;---------------------------------------
+@ROOTING_ITEM, ENEMY_NUM, FIELD_LEVEL
+#DIM DYNAMIC HOW_MANY
+#DIM DYNAMIC ENEMY_NUM
+#DIM DYNAMIC FIELD_LEVEL
+#DIM DYNAMIC UP_EXP
+
+UP_EXP = 1 + (ENEMY_NUM-1900)/5 + (FIELD_LEVEL/5)
+HOW_MANY = 1 + (ABL:MASTER:74/3) + ((RAND:21+FIELD_LEVEL)/10) + (FIELD_LEVEL/5)
+
+IF ITEM:(ENEMY_NUM) + HOW_MANY < 100
+    ITEM:ENEMY_NUM += HOW_MANY
+ELSE
+    ITEM:ENEMY_NUM = 99
+ENDIF
+;루팅템 획득
+
+TRAINING_BODY_EXP += UP_EXP
+;경험치 획득
+
+PRINTFORML %ITEMNAME:ENEMY_NUM%을 {HOW_MANY}개 획득하셨습니다!
+PRINTFORML 전투 경험치 {TRAINING_BODY_EXP}를 획득하셨습니다!
+
+WAIT

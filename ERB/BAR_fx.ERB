@@ -1,0 +1,61 @@
+﻿;-------------------------------------------------------------------------------
+;    BAR의 색 달리하고 판
+;-------------------------------------------------------------------------------
+;    예  PRINTFORM %PRINT_COLORBAR(40,100,8, %UNICODE(0x2584)%, %UNICODE(0x2584)%, , 0x404040)% 
+;        [===     ]
+;    인수는 BAR와 거의 함께 + ARGS로 묘사 문자의 변경이 가능(지정하지 않는 경우는 BAR와 같은 사양)
+;    ARG:3은 바의 색(0 xFFFFFF 형식에서 지정), ARG:4는 바의 배경 색(0 xFFFFFF 형식에서 지정)
+;===============================================================================
+@PRINT_COLORBAR(ARG, ARG:1, ARG:2, ARGS = "*", ARGS:1 = ".", ARG:3, ARG:4)
+#LOCALSIZE 5
+LOCAL:1 = ARG * ARG:2 / ARG:1
+LOCAL:2 = GETCOLOR()
+FOR LOCAL, 1, ARG:2 + 1
+	IF LOCAL:1 >= LOCAL
+		IF !LOCAL:3
+			SETCOLOR ARG:3
+			LOCAL:3 = 1
+		ENDIF
+		PRINTFORM %ARGS%
+	ELSE
+		IF !LOCAL:4
+			SETCOLOR ARG:4
+			LOCAL:4 = 1
+		ENDIF
+		PRINTFORM %ARGS:1%
+	ENDIF
+NEXT
+SETCOLOR LOCAL:2
+VARSET LOCAL
+
+
+
+;-------------------------------------------------
+;BASE 컬러 바 함수
+;-------------------------------------------------
+;체력등의 컬러 바
+;-------------------------------------------------
+@BASE_BAR(C_ID, BASE_NAME, BAR_LENGTH, COLOR_NAME, OP)
+#DIM  C_ID
+#DIMS BASE_NAME
+#DIM  BAR_LENGTH
+#DIMS COLOR_NAME
+#DIMS OP
+#DIM  BASE_ID
+BASE_ID = FINDELEMENT(BASENAME, BASE_NAME)
+SIF BASE_ID < 0
+	THROW 존재하지 않는 BASE_NAME %BASE_NAME%
+SIF !STRCOUNT(OP, "「종류 표기 없음」")
+	PRINTFORM %BASE_NAME, 4% 
+CALL PRINT_COLORBAR(BASE:C_ID:BASE_ID, MAXBASE:C_ID:BASE_ID, BAR_LENGTH, UNICODE(0x2585), UNICODE(0x2585), BARCOLORSET(COLOR_NAME), RESULT:1)
+IF !STRCOUNT(OP, "「숫자 표기 없음」")
+	IF BUFF_BAR:C_ID:BASE_ID > 0
+		SETCOLOR C_AQUA
+	ELSEIF BUFF_BAR:C_ID:BASE_ID < 0
+		SETCOLOR C_YELLOW
+	ENDIF
+	PRINTFORM  ({BASE:C_ID:BASE_ID, 5}/{MAXBASE:C_ID:BASE_ID, 5}) 
+	RESETCOLOR
+ENDIF
+SIF STRCOUNT(OP, "「개행」")
+	PRINTFORML 

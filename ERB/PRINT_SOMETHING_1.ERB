@@ -1,0 +1,233 @@
+﻿;---------------------------------------
+;소지 지식 PRINT 함수
+;---------------------------------------
+@PRINT_KNOWLEDGE
+PRINTL
+PRINT 　　
+PRINT 소지 지식： 
+SIF TALENT:MASTER:901 == 1
+	PRINT 연금지식Ⅰ  
+
+SIF TALENT:MASTER:911 == 1
+	PRINT 액상물약  
+
+SIF TALENT:MASTER:912 == 1
+	PRINT 기화물약
+
+SIF TALENT:MASTER:921 == 1
+	PRINT 대량제작Ⅰ
+PRINTL 
+PRINTL
+
+;---------------------------------------
+;튜토리얼 프린트
+;---------------------------------------
+@PRINT_TUTORIAL
+PRINTL 튜토리얼을 진행하겠습니까?
+PRINTL [0] 아니오       [1] 예
+$INPUT_LOOP1
+INPUT
+IF RESULT == 0
+    RETURN 0
+ELSEIF RESULT == 1
+    PRINTFORML     %UNICODE(0x25CE)% 행동력
+    PRINTL  본 게임은 하루(DAY)를 7번의 타임(TIME)으로 나누어져 있습니다.
+    PRINTL  한 타임에 기본적으로 3개의 행동력(ACT)이 주어지고,
+    PRINTL  행동력이 모두 소모되면 다음 타임으로 넘어갑니다.
+    PRINTL 
+    PRINTL  대부분의 활동이 행동력을 소모하니 신중히 선택하길 바랍니다.
+    PRINTL
+    PRINTW
+
+    PRINTFORML     %UNICODE(0x25CE)% 돈
+    PRINTL  여관의 레벨을 올려 손님의 만족도를 충족해서 더 많은 돈을 받아내십시오.
+    PRINTL  손님은 투숙하는 손님과 식사하는 손님 둘로 나뉩니다.
+    PRINTL
+    PRINTW
+
+    PRINTFORML     %UNICODE(0x25CE)% 조교
+    PRINTL  본 게임은 기본적으로 수면 중에 조교를 행하게 됩니다.
+    PRINTL  위험을 줄이기 위해 직접 제조한 수면제를 사용해 타겟을 재우는 게 가장 좋습니다.
+    PRINTL  혹시 조교 도중 깨려고 하면 수면제를 사용해서 수면도를 높이세요!
+    PRINTL  
+    PRINTL  만약 타겟이 잠에서 깨어나게 된다면, 무력으로 제압해야 할 것입니다.
+    PRINTL  무력으로 제압하는 과정에서 소음이 발생하는 것이 당연하고,
+    PRINTL  만약 당신이 모든 저녁 식사에 수면제를 타지 않았다면...
+    PRINTW
+    PRINTL  소음에 깨어 타겟과 대치 중인 당신을 찾아올 테고,
+    PRINTL  타겟과 힘을 합쳐 당신을 제압하려 할 것입니다.
+    PRINTL  그렇다면 당신은 여관에 존재하는 모든 용병을 죽이고,
+    PRINTL  밤중 소음에 찾아온 경비병을 죽이고,
+    PRINTW
+    PRINTL  도시 경비대의 추적을 피해 멀리 달아나
+    PRINTL  모든것을 새로 시작하여야 할 것입니다.
+    PRINTL  그리고 새로운 시작에는 늘 많은 돈이 필요할 것입니다.
+    PRINTL
+    PRINTW
+
+    PRINTL
+    PRINTL
+    PRINTL
+    
+    PRINTL 요약
+    PRINTL 1 DAY  =  7 TIME  =  7*3 ACT
+    PRINTL ACT : 조교한다1, 연금술1, 요리한다1, 상점1, 객실장식1, 외관장식1
+    PRINTL       상점1, 외출1, 성밖으로2, 던전으로2,
+    PRINTL       청소하기1, 홍보하기1, 말동무하기1
+    PRINTL --------------------------------------------------------------
+    PRINTL 행동력 회복 : 휴식하기-+1, 일찍자기2, 잠자기1
+    PRINTL --------------------------------------------------------------
+    PRINTL 기타 : 정보보기, 아이템창, Config, 세이브, 로드
+    PRINTL
+
+    $INPUT_LOOP2
+    PRINTL [1]알았어
+    INPUT
+    IF RESULT == 1
+        RETURN 0
+    ELSE
+        GOTO INPUT_LOOP2
+    ENDIF
+
+ELSE
+    CLEARLINE 1
+    GOTO INPUT_LOOP1
+ENDIF
+
+;---------------------------------------
+;메인 메뉴 버튼들 프린트
+;---------------------------------------
+@PRINT_MENUBUTTON
+FONTBOLD ;굵게
+SETFONT "アメリ·ガームンド·BT"
+PRINTFORML     %UNICODE(0x25C8)% Command
+SETFONT
+PRINTL
+PRINT   
+IF TIME >= 5 
+    ;PRINTFORM %"[100] 조교한다", 18, LEFT%
+    SETCOLOR 0x808080
+    PRINTPLAINFORM %"[100] 조교한다", 18, LEFT% 
+    RESETCOLOR
+ELSE
+	PRINTFORM %"[---] 　　　　", 18, LEFT%
+ENDIF
+
+;PRINT   
+    PRINTFORM %"[101] 연금술", 17, LEFT% 
+
+;PRINT   
+IF TIME < 5 && FLAG:1 == 0
+    PRINTFORM %"[102] 요리한다", 18, LEFT% 
+ELSE
+	PRINTFORM %"[---] 　    　", 19, LEFT%
+ENDIF
+
+;PRINT   
+IF TIME <= 1
+    PRINTFORM %"[151] 객실장식", 18, LEFT% 
+ELSE
+	PRINTFORM %"[---] 　    　", 16, LEFT%
+ENDIF
+
+;PRINT   
+IF TIME <= 1
+    PRINTFORM %"[152] 외관장식", 18, LEFT% 
+ELSE
+	PRINTFORM %"[---] 　    　", 18, LEFT%
+ENDIF
+;--------------------------------------------
+PRINTL
+;--------------------------------------------
+PRINT   
+    PRINTFORM %"[201] 상점", 17, LEFT% 
+
+;PRINT   
+IF TIME < 5
+    PRINTFORM %"[211] 외출", 17, LEFT% 
+ELSE
+	PRINTFORM %"[---] 　　", 18, LEFT%
+ENDIF
+
+;PRINT   
+IF TIME < 4
+    PRINTFORM %"[215] 성밖으로", 18, LEFT% 
+ELSE
+	PRINTFORM %"[---] 　　    ", 19, LEFT%
+ENDIF
+
+;PRINT   
+IF TIME < 4
+    ;PRINTFORM %"[216] 던전으로", 18, LEFT% 
+    SETCOLOR 0x808080
+    PRINTPLAINFORM %"[216] 던전으로(미구현)", 18, LEFT% 
+    RESETCOLOR
+ELSE
+	PRINTFORM %"[---] 　    　", 18, LEFT%
+ENDIF
+;--------------------------------------------
+PRINTL
+;--------------------------------------------
+PRINT   
+    PRINTFORM %"[301] 청소하기", 16, LEFT%
+
+PRINT   
+IF (TIME > 1 && TIME < 5)
+    PRINTFORM %"[302] 홍보하기", 16, LEFT%
+ELSE
+	PRINTFORM %"[---]   　　　", 16, LEFT%
+ENDIF
+
+PRINT   
+IF (TIME > 1 && TIME < 5)
+    PRINTFORM %"[303] 말동무되기", 18, LEFT%
+ELSE
+	PRINTFORM %"[---] 　　　　  ", 18, LEFT%
+ENDIF
+
+PRINT  
+    PRINTFORM %"[---] 　　  　  ", 18, LEFT%
+;--------------------------------------------
+PRINTL
+;--------------------------------------------
+PRINT   
+IF TIME < 5
+    PRINTFORM %"[401] 휴식하기", 16, LEFT%
+ELSE
+	PRINTFORM %"[---]        ", 16, LEFT%
+ENDIF
+
+PRINT   
+IF TIME == 5
+    PRINTFORM %"[402] 일찍자기", 16, LEFT%
+ELSE
+	PRINTFORM %"[---]        ", 16, LEFT%
+ENDIF
+
+PRINT   
+IF TIME == 6
+    PRINTFORM %"[403] 잠자기", 18, LEFT%
+ELSE
+	PRINTFORM %"[---] 　　  ", 17, LEFT%
+ENDIF
+
+PRINT   
+    PRINTFORM %"[450] 아이템창", 18, LEFT%
+;--------------------------------------------
+PRINTL
+;--------------------------------------------
+PRINT   
+    PRINTFORM %"[666] 정보보기", 16, LEFT%
+PRINT   
+    PRINTFORM %"[777] Config", 16, LEFT%
+PRINT   
+    PRINTFORM %"[888] 세이브", 17, LEFT%
+PRINT   
+    PRINTFORM %"[999] 로드", 18, LEFT%
+PRINTL
+FONTREGULAR
+DRAWLINEFORM %UNICODE(0x2550)%
+
+;---------------------------------------
+;소지한 아이템들 프린트
+;---------------------------------------
