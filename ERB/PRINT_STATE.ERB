@@ -333,13 +333,6 @@ PRINT  체질 :
 ;201-205 / 223 / 226 / 251-254
 FOR F_COUNT,0,TALENT_ARRAY_COUNT:1
     REPEAT B_SHOW_TALENT_NUM:2:F_COUNT
-        IF L_COUNT%7 == 6
-            PRINTL
-            PRINT 
-            L_COUNT += 1 
-        ENDIF
-        ;7개이상 작성 되었을 경우 다음글.
-
         IF F_COUNT == 0 && COUNT == 0
         ;맨 처음 출력되기
             IF TALENT:T_CHARA:1 == 0 && TALENT:T_CHARA:0 == 0
@@ -520,7 +513,6 @@ FOR F_COUNT,0,TALENT_ARRAY_COUNT:1
                 PRINTPLAINFORM [C민감] 
                 L_COUNT += 1
             ENDIF
-
         ELSE
         ;기타 BIT없는 TALENT들
             IF TALENT:T_CHARA:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == 1
@@ -528,6 +520,11 @@ FOR F_COUNT,0,TALENT_ARRAY_COUNT:1
                 L_COUNT += 1
             ENDIF
         ENDIF
+        IF L_COUNT%10 == 0
+            PRINTL        
+            L_COUNT += 1 
+        ENDIF
+        ;줄바꿈
     REND
 NEXT
 
@@ -537,12 +534,6 @@ PRINT  특수 :
 ;151-156 / 218-220 / 261-264 / 271-273
 FOR F_COUNT,0,TALENT_ARRAY_COUNT:2
     REPEAT C_SHOW_TALENT_NUM:2:F_COUNT
-        IF (L_COUNT)%7 == 6
-            PRINTL
-            PRINT  
-        ENDIF
-        ;7개이상 작성 되었을 경우 다음글.
-
         IF F_COUNT == 0 && COUNT == 0
             IF CFLAG:T_CHARA:22 == 1
                 PRINTPLAINFORM [순결봉인] 
@@ -550,7 +541,6 @@ FOR F_COUNT,0,TALENT_ARRAY_COUNT:2
             ENDIF
         ENDIF
         ;맨 처음에 출력될 TALENT가 아닌 소질.
-
         IF (C_SHOW_TALENT_NUM:0:F_COUNT)+COUNT == 151
         ;회복속도
             IF TALENT:T_CHARA:((C_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == -1
@@ -570,7 +560,6 @@ FOR F_COUNT,0,TALENT_ARRAY_COUNT:2
                 L_COUNT += 1
             ENDIF
         ;ELSEIF 
-
         ELSE
         ;기타 BIT없는 TALENT들
             IF TALENT:T_CHARA:((C_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == 1
@@ -578,6 +567,11 @@ FOR F_COUNT,0,TALENT_ARRAY_COUNT:2
                 L_COUNT += 1
             ENDIF
         ENDIF
+        IF L_COUNT%10 == 0
+            PRINTL        
+            L_COUNT += 1 
+        ENDIF
+        ;줄바꿈
     REND
 NEXT
 
@@ -590,8 +584,10 @@ REPEAT 100
     IF TALENTNAME:(900+COUNT) != "" && T_CHARA == 0 && TALENT:MASTER:(900+COUNT) == 1
         PRINTPLAINFORM  [%TALENTNAME:(900+COUNT)%]
         L_COUNT += 1
-        SIF L_COUNT%4 == 0
+        IF L_COUNT%4 == 0
             PRINTL
+            L_COUNT += 1
+        ENDIF
     ENDIF
 REND
 PRINTL
