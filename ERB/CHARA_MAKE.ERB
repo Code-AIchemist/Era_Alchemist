@@ -883,11 +883,7 @@ STORE_TARGET = TARGET
 ;타겟 저장
 TARGET = CHARA_NUM
 
-<<<<<<< Updated upstream
-REPEAT 10
-=======
-REPEAT 3
->>>>>>> Stashed changes
+REPEAT 5
 	DICE = RAND:5
 	SIF DICE == 0
 		ABL:(RAND:5) += RAND:5
@@ -900,11 +896,7 @@ SIF DICE == 0
 ;ABL기교
 
 REPEAT 20
-<<<<<<< Updated upstream
 	DICE = RAND:10
-=======
-	DICE = RAND:5
->>>>>>> Stashed changes
 	SIF DICE == 0
 		ABL:(71 + RAND:6) += 1
 REND
