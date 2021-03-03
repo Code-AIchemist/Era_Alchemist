@@ -216,12 +216,6 @@ PRINT  성격 :
 ;196-199 / 221-222 / 224-225
 FOR F_COUNT,0,TALENT_ARRAY_COUNT:0
     REPEAT A_SHOW_TALENT_NUM:2:F_COUNT
-        IF (L_COUNT)%7 == 6
-            PRINTL
-            PRINT  
-            L_COUNT += 1
-        ENDIF
-        ;줄바꿈
         IF (A_SHOW_TALENT_NUM:0:F_COUNT)+COUNT == 21
         ;담력
             IF TALENT:T_CHARA:((A_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == -1
@@ -323,6 +317,15 @@ FOR F_COUNT,0,TALENT_ARRAY_COUNT:0
                 L_COUNT += 1
             ENDIF
         ENDIF
+        SIF L_COUNT == 0
+            CONTINUE
+        ;첫번째 그룹에서 소질이 하나도 안나왔을 경우 정렬을 위해 줄바꿈 넘김.
+        IF (L_COUNT)%10 == 0
+            PRINTL
+            PRINT       
+            L_COUNT += 1
+        ENDIF
+        ;줄바꿈
     REND
 NEXT
 
@@ -358,7 +361,6 @@ FOR F_COUNT,0,TALENT_ARRAY_COUNT:1
                 L_COUNT += 1
             ENDIF
         ENDIF
-
         IF (B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT == 31 && T_CHARA == 0
         ;용모-MASTER
             IF TALENT:T_CHARA:((B_SHOW_TALENT_NUM:0:F_COUNT)+COUNT) == -1
@@ -521,7 +523,12 @@ FOR F_COUNT,0,TALENT_ARRAY_COUNT:1
             ENDIF
         ENDIF
         IF L_COUNT%10 == 0
+<<<<<<< Updated upstream
             PRINTL        
+=======
+            PRINTL
+            PRINT       
+>>>>>>> Stashed changes
             L_COUNT += 1 
         ENDIF
         ;줄바꿈
@@ -567,9 +574,16 @@ FOR F_COUNT,0,TALENT_ARRAY_COUNT:2
                 L_COUNT += 1
             ENDIF
         ENDIF
+<<<<<<< Updated upstream
         IF L_COUNT%10 == 0
             PRINTL        
             L_COUNT += 1 
+=======
+        IF (L_COUNT)%10 == 0
+            PRINTL
+            PRINT       
+            L_COUNT += 1
+>>>>>>> Stashed changes
         ENDIF
         ;줄바꿈
     REND

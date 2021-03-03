@@ -473,7 +473,7 @@ ENDIF
 ;성애의 관심 - 51~58
 REPEAT 8
     DICE = RAND:10
-    IF DICE <= 0 && DICE < 3
+    IF DICE <= 0 && DICE < 4
         IF (COUNT == 0 || COUNT == 1) && RAND:2 == 0
             TALENT:(COUNT+51) = -1
         ELSE
@@ -485,7 +485,7 @@ REND
 ;소녀 감성 - 61~64
 REPEAT 4
     DICE = RAND:10
-    IF DICE <= 0 && DICE < 3
+    IF DICE <= 0 && DICE < 4
         IF (COUNT == 0 || COUNT == 1 || COUNT == 3) && RAND:2 == 0
             TALENT:(COUNT+61) = -1
         ELSE
@@ -497,7 +497,7 @@ REND
 ;체질 - 71~74
 REPEAT 4
     DICE = RAND:10
-    IF DICE <= 0 && DICE < 2
+    IF DICE <= 0 && DICE < 3
         IF (COUNT == 0 || COUNT == 1 || COUNT == 2) && RAND:2 == 0
             TALENT:(COUNT+71) = -1
         ELSE
@@ -509,7 +509,7 @@ REND
 ;기술 - 81~83
 REPEAT 3
     DICE = RAND:10
-    IF DICE <= 0 && DICE < 2
+    IF DICE <= 0 && DICE < 3
         IF (COUNT == 0) && RAND:2 == 0
             TALENT:(COUNT+81) = -1
         ELSE
@@ -543,7 +543,7 @@ REND
 ;정직도A - 101~102
 REPEAT 2
     DICE = RAND:10
-    IF DICE <= 0 && DICE < 1
+    IF DICE <= 0 && DICE < 2
         IF (COUNT == 0) && RAND:2 == 0
             TALENT:(COUNT+101) = -1
         ELSE
@@ -554,26 +554,25 @@ REND
 
 ;정직도B - 104~108 (1개 제한)
 DICE = RAND:20
-IF DICE <= 0 && DICE < 1
+IF DICE == 0
     TALENT:((RAND:5)+104) = 1
 ENDIF
 
 ;성애성 - 111~118 (2개 제한)
 REPEAT 2
-    DICE = RAND:10
-    IF DICE <= 0 && DICE < 1
-        DICE:1 = RAND:8
-        IF DICE:1 == 1
+    IF RAND:10 == 0
+        DICE = RAND:8
+        IF DICE == 1
         ;112,성별기호
             DICE:1 = RAND:3
             IF DICE:1 == 0
-                TALENT:(DICE:1+111) = -1
+                TALENT:((DICE:1)+111) = -1
             ELSE
                 ;DICE:1 == 1 || 2
-                TALENT:(DICE:1+111) = DICE:1
+                TALENT:((DICE:1)+111) = DICE:1
             ENDIF
         ELSE
-            TALENT:(DICE:1+111) = 1
+            TALENT:((DICE)+111) = 1
         ENDIF
     ENDIF
 REND
@@ -690,19 +689,19 @@ REND
 SIF RAND:50 == 0
     TALENT:(171) = 1
 ;-172,약독면역,;강한NPC의 상징. 미약,이뇨제,최면약 등의 약을 사용하는 커맨드 실행 불가.
-SIF RAND:50 == 0
+SIF RAND:30 == 0
     TALENT:(172) = 1
 ;-173,모유체질,;분유가능
 SIF RAND:5 == 0 && TALENT:(132) > 0
     TALENT:(173) = 1
 ;-174,자위안함,;자위 커맨드 거부
-SIF RAND:30 == 0
+SIF RAND:20 == 0
     TALENT:(174) = 1
 ;-175,봉사안함,;봉사 커맨드 거부
-SIF RAND:30 == 0
+SIF RAND:20 == 0
     TALENT:(175) = 1
 ;-176,멘탈약함,; 유아퇴행하기 쉬움
-SIF RAND:50 == 0
+SIF RAND:40 == 0
     TALENT:(176) = 1
 
 ;-특수D_성벽 - 196~199 (1개 제한)
@@ -710,20 +709,20 @@ SIF RAND:20 == 0
     TALENT:((RAND:4)+196) = 1
 
 ;특수E - 221~226(223X, 225X)
-SIF RAND:20 == 0
+SIF RAND:10 == 0
     TALENT:(221) = 1
-SIF RAND:20 == 0
+SIF RAND:10 == 0
     TALENT:(222) = 1
-SIF RAND:20 == 0
+SIF RAND:10 == 0
     TALENT:(224) = 1
-SIF RAND:20 == 0
+SIF RAND:10 == 0
     TALENT:(226) = 1
 
 ;특수F - 236~241 (대사관련 특성) - 1개제한. 조건-무
 TALENT:((RAND:6)+236) = 1
 
 ;영업관련 - 261~264
-SIF RAND:20 == 0
+SIF RAND:20 == 0 && (TALENT:1 != 0 || TALENT:2 != 0)
 	TALENT:261 = 1
 SIF RAND:20 == 0
 	TALENT:262 = 1
@@ -852,12 +851,14 @@ IF TALENT:226 == 1
 	;확률로 가슴크기 증가 보너스
 	TALENT:196 = 0
 	TALENT:197 = 0
-	TALENT:1 = 1
-	;[마더콘],[파더콘],[처녀] 삭제.
-
-	IF RAND:2 == 0
-		TALENT:221 = 0
-		;[애같음] 삭제
+	;[마더콘],[파더콘] 삭제.
+	IF RAND:100 == 0
+		TALENT:1 = 0
+	ELSE
+		TALENT:1 = 1
+	ENDIF
+	;매우 낮은 확률로 [처녀]
+	IF RAND:3 == 0
 		TALENT:224 = 1
 		;[모성] 추가
 	ENDIF
@@ -882,38 +883,55 @@ STORE_TARGET = TARGET
 ;타겟 저장
 TARGET = CHARA_NUM
 
+<<<<<<< Updated upstream
 REPEAT 10
+=======
+REPEAT 3
+>>>>>>> Stashed changes
 	DICE = RAND:5
 	SIF DICE == 0
-		ABL:(RAND:5) += 1
+		ABL:(RAND:5) += RAND:5
 REND
-;쾌감계
+;ABL쾌감계
 
 DICE = RAND:5
 SIF DICE == 0
 	ABL:10 += (RAND:3)
-;기교
+;ABL기교
 
 REPEAT 20
+<<<<<<< Updated upstream
 	DICE = RAND:10
+=======
+	DICE = RAND:5
+>>>>>>> Stashed changes
 	SIF DICE == 0
 		ABL:(71 + RAND:6) += 1
 REND
-;기능
+;ABL기능
 
 IF TALENT:113 == 1
-	DICE = RAND:5
+	DICE = RAND:3
 	SIF DICE == 0
 		ABL:31 += RAND:4
 ENDIF
-;새드끼
+;[새드끼]
 
 IF TALENT:114 == 1
-	DICE = RAND:5
+	DICE = RAND:3
 	SIF DICE == 0
 		ABL:32 += RAND:4
 ENDIF
-;마조끼
+;[마조끼]
+
+IF TALENT:261 == 1 || TALENT:264 == 1
+	REPEAT 15
+		IF RAND:3 == 0
+			ABL:(51+COUNT) += (1+RAND:2)
+		ENDIF
+	REND
+ENDIF
+;[창부]나 [방중술]
 
 REPEAT 10
 	IF RAND:5 == 0
