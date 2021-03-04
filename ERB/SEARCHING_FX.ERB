@@ -48,8 +48,8 @@ FOR SEARCH_COUNT,0,5
                     RETURN 0
             ELSE
                 ;ABL:MASTER:53 = 채집기능
-                ;(RAND:21+FIELD_LEVEL/10) - 운빨 추가 획득
-                HOW_MANY = 1 + (ABL:MASTER:73/3) + ((RAND:21+FIELD_LEVEL)/10) + (FIELD_LEVEL/5)
+                ;(RAND:21 ~~) - 운빨 추가 획득
+                HOW_MANY = 1 + ((ABL:MASTER:73)/3) + ((RAND:(21+(ABL:MASTER:83)-(ABL:MASTER:84))+FIELD_LEVEL)/10) + (FIELD_LEVEL/5)
                 IF ITEM:(COLLECT_ITEM_KIND:COUNT) + HOW_MANY < 100
                     ITEM:(COLLECT_ITEM_KIND:COUNT) += HOW_MANY
                 ELSE
@@ -351,7 +351,7 @@ WEND
 #DIM DYNAMIC UP_EXP
 
 UP_EXP = 1 + (ENEMY_NUM-1900)/5 + (FIELD_LEVEL/5)
-HOW_MANY = 1 + (ABL:MASTER:74/3) + ((RAND:21+FIELD_LEVEL)/10) + (FIELD_LEVEL/5)
+HOW_MANY = 1 + (ABL:MASTER:74/3) + ((RAND:(21+(ABL:MASTER:83)-(ABL:MASTER:84))+FIELD_LEVEL)/10) + (FIELD_LEVEL/5)
 
 IF ITEM:(ENEMY_NUM) + HOW_MANY < 100
     ITEM:ENEMY_NUM += HOW_MANY

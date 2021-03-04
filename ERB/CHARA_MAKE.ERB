@@ -922,6 +922,15 @@ REPEAT 10
 REND
 ;성기술
 
+IF RAND:20 == 0
+	IF RAND:2 == 0
+		ABL:83 += 1+RAND:3
+	ELSE
+		ABL:84 += 1+RAND:3
+	ENDIF
+ENDIF
+;행운/불행
+
 TARGET = STORE_TARGET
 ;타겟 복구
 

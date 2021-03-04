@@ -1,8 +1,32 @@
 ﻿;---------------------------------------
+;@EVENTSHOP
+;LOADDATA 후 실행X
 ;프롤로그
 ;---------------------------------------
 @EVENTSHOP
-;LOADDATA 후 실행X
+#DIM DYNAMIC BACKGROUND_FLAG, 10
+
+PRINTL
+CALL CHANGE_NAME_ANATA
+DRAWLINE
+CALL CHANGE_GAME_LV
+DRAWLINE
+
+
+$INPUT_LOOP
+PRINTL 초기 소지 금액은?
+PRINTFORML [0]0%MONEYLABEL%     [1]5000%MONEYLABEL%     [2]50000%MONEYLABEL%
+INPUT
+IF RESULT == 0
+    MONEY = 0
+ELSEIF RESULT == 1
+    MONEY = 5000
+ELSEIF RESULT == 2
+    MONEY = 50000
+ELSE
+    GOTO INPUT_LOOP
+ENDIF
+
 CLEARLINE 100
 
 ;---------------------------------------
@@ -108,10 +132,13 @@ SELECTCASE MENU_NUM
         ENDIF
     CASE 215
     ;성밖으로  TIME < 4
-        IF A > 1 && TIME < 4
+        IF A > 1 && TIME < 4 && ABL:MASTER:91 > 0 && ABL:MASTER:92 > 0 && ABL:MASTER:93 > 0 
             CALL GO_OUT_CITY
         ELSEIF TIME >= 4
             PRINTW 이 시간엔 실행할 수 없습니다
+            PRINTL
+        ELSEIF ABL:MASTER:91 <= 0 || ABL:MASTER:92 <= 0 || ABL:MASTER:92 <= 0 
+            PRINTW '이 몸상태로 나갔다간 죽고 말거야... 훈련소에서 재활훈련을 해보자.
             PRINTL
         ELSE
             PRINTW 행동력이 부족합니다
