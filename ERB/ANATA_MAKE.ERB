@@ -1227,6 +1227,8 @@ TARGET = STORE_TARGET
 STORE_TARGET = TARGET
 TARGET = MASTER
 ;타겟 저장
+L = 0
+;CLEAR할 줄 값 저장할 변수 초기화
 
 CHOOSE_TALENT_POINT:1 = 10
 REPEAT 70
@@ -1447,8 +1449,10 @@ WHILE 1
         ENDIF
         RESETCOLOR
         
-        SIF COUNT != 0 && COUNT%7 == 0
+        IF COUNT != 0 && COUNT%7 == 0
             PRINTL
+            L++
+        ENDIF
         ;줄바꿈
         PRINT  
     REND
@@ -1534,7 +1538,8 @@ WHILE 1
                 ENDIF
             ENDIF
     ENDSELECT
-    CLEARLINE 1
+    CLEARLINE L
+    ;PRINT 덮어씌기
 WEND
 
 IF TALENT:근육량 == -1
@@ -1573,12 +1578,16 @@ TARGET = STORE_TARGET
 STORE_TARGET = TARGET
 TARGET = MASTER
 ;타겟 저장
+L = 0
+;CLEAR할 줄 값 저장할 변수 초기화
 
 PRINTL
 WHILE 1
     REPEAT 15
-        SIF COUNT!=0 && ((COUNT%4)==0)
+        IF COUNT!=0 && ((COUNT%4)==0)
             PRINTL
+            L ++
+        ENDIF
 
         PRINTFORM %ABLNAME:(MASTER_ABL_ID:COUNT),10,RIGHT%:{ABL_POINT:COUNT}
         PRINT     
@@ -1620,6 +1629,8 @@ WHILE 1
                     ABL_POINT:ARG ++
             ENDIF
     ENDSELECT
+    CLEARLINE L
+    ;PRINT 덮어씌기
 WEND
 
 TARGET = STORE_TARGET
@@ -1644,6 +1655,9 @@ TARGET = STORE_TARGET
 STORE_TARGET = TARGET
 TARGET = MASTER
 ;타겟 저장
+L = 0
+;CLEAR할 줄 값 저장할 변수 초기화
+
 
 VARSET LOCAL
 WHILE 1
@@ -1654,8 +1668,10 @@ WHILE 1
             CONTINUE
         PRINTFORM [{LOCAL, 2}] - %EXPNAME:LOCAL,12%:{EXP:LOCAL, 5, LEFT} 
         LOCAL:1 += 1
-        SIF LOCAL:1 != 0 && LOCAL:1 % 3 == 0
+        IF LOCAL:1 != 0 && LOCAL:1 % 3 == 0
             PRINTL 
+            L ++
+        ENDIF
     NEXT
     PRINTL
     DRAWLINE
@@ -1675,6 +1691,8 @@ WHILE 1
     SIF RESULT < 0
         CONTINUE
     EXP:ARG:LOCAL = MIN(RESULT, 30)
+    CLEARLINE L
+    ;PRINT 덮어씌기
     DRAWLINE
 WEND
 
