@@ -2,8 +2,21 @@
 #DIM SAVEDATA BUFF_LV,4
 #DIM SAVEDATA BUFF_TIME,4
 #DIM SAVEDATA DECORATE_ITEM_LV,12
-;요리아이템 지속시간 필요없어서 미포함.
+;아이템의 종류에 따라 상승하는 레벨
 #DIM SAVEDATA DECORATE_ITEM_TIME,9
+;요리아이템 지속시간 필요없어서 미포함.
+
+#DIM SAVEDATA 외관LV
+#DIM SAVEDATA 객실LV
+#DIM SAVEDATA 요리LV
+#DIM SAVEDATA 소문LV
+#DIM SAVEDATA 여관LV
+;여관 능력 LV
+#DIM SAVEDATA 장착_외관,3
+#DIM SAVEDATA 장착_객실,3
+#DIM SAVEDATA 장착_요리,3
+#DIM SAVEDATA 장착_소문,3
+;여관 아이템 장착
 
 ;------아이템 종류 기억용 변수
 #DIM SAVEDATA KIND_OF_TRAIN_ITEM
@@ -36,9 +49,6 @@
 ;면간 중 소음-100달성시 위화감, 위험도 ++, 수면도--
 
 ;------기타 변수
-#DIM SAVEDATA CF_CHANGE, 100
-;CONFIG 화면 수정용
-
 #DIM SAVEDATA MARKET_ITEM_KIND,30
 ;시장 아이템들 하루동안 저장용
 
@@ -61,17 +71,38 @@
 #DIM SAVEDATA GAME_MODE_LV
 ;게임 난이도 LV
 
-#DIM SAVEDATA 외관LV
-#DIM SAVEDATA 객실LV
-#DIM SAVEDATA 요리LV
-#DIM SAVEDATA 소문LV
-#DIM SAVEDATA 여관LV
-;여관 능력 LV
-#DIM SAVEDATA 장착_외관,3
-#DIM SAVEDATA 장착_객실,3
-#DIM SAVEDATA 장착_요리,3
-#DIM SAVEDATA 장착_소문,3
+#DIM SAVEDATA 주간매출액,10
+;1주(10일)간 매출액
+;:0=총액, :1=숙박매출, :2=식사매출 :9=저번주 총액
+#DIM SAVEDATA 매출액보너스,2
+;매출액에 영향을 끼치는 시스템적 보너스. %로 계산됨.
+;:0=플러스 보너스(긍정적), :1=마이너스 보너스(부정적)
 
+#DIM SAVEDATA 당신의_과거_배경,3
+;주인공의 과거설정과 배경설정을 저장해두는 변수.
+;:0=어린시절,1=성장과정,2=여관을 세우게 된 배경
+
+#DIM SAVEDATA 직업_호감도플러스_플래그,100
+;특정 조건이 성립 되었을 경우 직업에 따라 호감도가 플러스.
+;:0=신성계열(사제,무녀,용사,성녀)
+#DIM SAVEDATA 직업_호감도마이너스_플래그,100
+;특정 조건이 성립 되었을 경우 직업에 따라 호감도가 마이너스.
+;:0=신성계열(사제,무녀,용사,성녀)
+
+#DIM SAVEDATA 저주각인,100
+;주인공이 받게 될 저주각인 유무(0=NO, 1=YES)
+;:0=거대조루의 저주
+
+#DIM SAVEDATA 발기부전
+;어떠한 조건에 의해 주인공은 발기 부전이 됨(0=발기가능, 1=고자)
+
+#DIM SAVEDATA 위험도보너스,2
+;위험도에 영향을 끼치는 시스템적 보너스. 배수로 계산됨.
+;:0=플러스 보너스(부정적), :1=마이너스 보너스(긍정적)
+
+#DIM SAVEDATA COOL_TIME_EVENT,100
+;이벤트가 일어나기까지 남은 대기시간을 나타냄.
+;:0=대요괴'구미호'의 부활
 
 #DIM SAVEDATA A_SHOW_TALENT_NUM,3,100
 #DIM SAVEDATA B_SHOW_TALENT_NUM,3,100

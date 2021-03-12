@@ -64,23 +64,45 @@ SIF A == 0
     CALL CHECK_PLZ, 1
 
 ;---------------------------------------
+;@CHECK_PLZ, ARG
 ;돈 계산하기.
+;TIME = 0새벽/1아침/2점심/3낮/4저녘/5밤/6늦은밤
+;#DIM SAVEDATA 주간매출액
+;1주(10일)간 매출액
+;:0=총액, :1=숙박매출, :2=식사매출 :9=저번주 총액
+;#DIM SAVEDATA 매출액보너스,2
+;매출액에 영향을 끼치는 시스템적 보너스. %로 계산됨.
+;:0=플러스 보너스, :1=마이너스 보너스
 ;---------------------------------------
 @CHECK_PLZ, ARG
-;TIME = 0새벽/1아침/2점심/3낮/4저녘/5밤/6늦은밤
+#DIM DYNAMIC COMPUTE_MONEY
+;돈 계산용 변수
+
 IF ARG == 0 && TIME == 5
 ;숙박 돈계산
-    MONEY:1 = B * 100 * (외관LV + 2*객실LV + 2/소문LV)
-    MONEY += MONEY:1
-    PRINTFORML 숙박 매출 : {MONEY:1}
+    COMPUTE_MONEY = B * 100 * (외관LV + 2*객실LV + 2/소문LV)
+    SIF 매출액보너스:0 > 0
+        COMPUTE_MONEY = COMPUTE_MONEY + (COMPUTE_MONEY * 매출액보너스:0 / 100)
+    SIF 매출액보너스:1 > 0
+        COMPUTE_MONEY = COMPUTE_MONEY - (COMPUTE_MONEY * 매출액보너스:1 / 100)
+    MONEY += COMPUTE_MONEY
+    주간매출액 += COMPUTE_MONEY
+    주간매출액:1 += COMPUTE_MONEY
+    PRINTFORML 숙박 매출 : {COMPUTE_MONEY}
     ;숙박 손님 초기화
     B = 0
 
 ELSEIF ARG == 1 && (TIME == 2 || TIME == 4)
 ;식사 돈계산
-    MONEY:1 = C * 20 * (외관LV + 2*요리LV + 2/소문LV)
-    MONEY += MONEY:1
-    PRINTFORML 식당 매출 : {MONEY:1}
+    COMPUTE_MONEY = C * 20 * (외관LV + 2*요리LV + 2/소문LV)
+    SIF 매출액보너스:0 > 0
+        COMPUTE_MONEY = COMPUTE_MONEY + (COMPUTE_MONEY * 매출액보너스:0 / 100)
+    SIF 매출액보너스:1 > 0
+        COMPUTE_MONEY = COMPUTE_MONEY - (COMPUTE_MONEY * 매출액보너스:1 / 100)
+    MONEY += COMPUTE_MONEY
+    주간매출액 += COMPUTE_MONEY
+    주간매출액:2 += COMPUTE_MONEY
+    PRINTFORML 식당 매출 : {COMPUTE_MONEY}
     ;식사 손님 초기화
     C = 0
     ;요리 없음.

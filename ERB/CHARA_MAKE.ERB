@@ -265,7 +265,14 @@ CFLAG:MAKE_CHARA_NUM:5 += 2000 * ((TALENT:MAKE_CHARA_NUM:806)-1)
 IF CFLAG:MAKE_CHARA_NUM:4 > 1
     REPEAT (CFLAG:MAKE_CHARA_NUM:4) - 1
         CALL JOB_LEVEL_UP, MAKE_CHARA_NUM, CHARA_JOB
+		CFLAG:MAKE_CHARA_NUM:91 += RESULT:0
+		CFLAG:MAKE_CHARA_NUM:92 += RESULT:1
+		CFLAG:MAKE_CHARA_NUM:93 += RESULT:2
+		MAXBASE:MAKE_CHARA_NUM:0 += RESULT:3
+		MAXBASE:MAKE_CHARA_NUM:1 += RESULT:4
     REND
+	BASE:MAKE_CHARA_NUM:0 = MAXBASE:MAKE_CHARA_NUM:0
+	BASE:MAKE_CHARA_NUM:1 = MAXBASE:MAKE_CHARA_NUM:1
 ENDIF
 
 ;-----체형 조정-----
@@ -647,9 +654,10 @@ IF DICE == 0
 	TALENT:140 = 1
 	ABL:91 += 5
 	ABL:92 += 5
+	ABL:93 -= 5
 	;근육질
 ELSEIF DICE == 1
-	TALENT:141 = 1
+	TALENT:140 = -1
 	ABL:91 -= 5
 	ABL:92 -= 5
 	ABL:93 += 5
@@ -804,7 +812,7 @@ IF CFLAG:31 <= 13
 	SIF RAND:10 < 8
 		TALENT:58 = 1
 	SIF RAND:10 < 8
-		TALENT:202 = 1
+		TALENT:201 = 1
 	;높은 확률로 [무지]나 [미숙]추가
 	
 	TALENT:226 == 0
@@ -821,7 +829,7 @@ SIF TALENT:131 <= -2 && RAND:2 == 0
 
 ;체형이 [난쟁이]일 경우 [미숙]으로
 SIF TALENT:131 == -3
-	TALENT:202 = 1
+	TALENT:201 = 1
 
 ;낙관적/비관적 과 [감정부족]이 같이 있을경우
 IF (TALENT:52 != 0) && TALENT:53 == 1
@@ -833,7 +841,7 @@ IF (TALENT:52 != 0) && TALENT:53 == 1
 ENDIF
 
 ;[무지]나 [미숙]일 경우
-IF TALENT:58 == 1 || TALENT:202 == 1
+IF TALENT:58 == 1 || TALENT:201 == 1
 	TALENT:1 = 0
 	TALENT:2 = 0
 	TALENT:4 = 0
@@ -1054,7 +1062,7 @@ TARGET = STORE_TARGET
 ;---------------------------------------
 ;@JOB_LEVEL_UP, CHARA_NUM, CHARA_JOB
 ;직업레벨 상승.
-;ABL : 46/공격  47/방어  48/마력
+;ABL : 91/공격  92/방어  93/마력
 ;---------------------------------------
 @JOB_LEVEL_UP, CHARA_NUM, CHARA_JOB
 #DIM DYNAMIC CHARA_NUM
@@ -1063,144 +1071,139 @@ TARGET = STORE_TARGET
 ;해당 캐릭터의 직업
 #DIM DYNAMIC DICE2
 ;랜덤값
+#DIM DYNAMIC STORE_ABL,3
+;공격,방어,마력
+#DIM DYNAMIC STORE_MAXBASE,2
+;최대 베이스
 
 ;직업별 능력치(공격,방어,마력 + 체력,기력) 올리기
 SELECTCASE CHARA_JOB
+	CASE 0
+	;무직
+		STORE_ABL:0 += 1
+		STORE_ABL:1 += 1
+		STORE_ABL:2 += 1
+		STORE_MAXBASE:0 += 30
+		STORE_MAXBASE:1 += 30
     CASE 701
     ;전사
         DICE2 = RAND:11
         IF DICE2 <= 0 && DICE2 < 5
-            ABL:CHARA_NUM:91 += 2
-            ABL:CHARA_NUM:92 += 1
+            STORE_ABL:0 += 2
+            STORE_ABL:1 += 1
         ELSEIF DICE2 <= 5 && DICE2 < 10
-            ABL:CHARA_NUM:91 += 1
-            ABL:CHARA_NUM:92 += 2
+            STORE_ABL:0 += 1
+            STORE_ABL:1 += 2
         ELSE
-            ABL:CHARA_NUM:91 += 1
-            ABL:CHARA_NUM:92 += 1
-            ABL:CHARA_NUM:93 += 1
+            STORE_ABL:0 += 1
+            STORE_ABL:1 += 1
+            STORE_ABL:2 += 1
         ENDIF
-		MAXBASE:CHARA_NUM:0 += 100
-		BASE:CHARA_NUM:0 += 100
-		MAXBASE:CHARA_NUM:1 += 30
-		BASE:CHARA_NUM:1 += 30
+		STORE_MAXBASE:0 += 100
+		STORE_MAXBASE:1 += 30
     CASE 702
     ;마법사
         DICE2 = RAND:11
         IF DICE2 <= 0 && DICE2 < 5
-            ABL:CHARA_NUM:93 += 3
+            STORE_ABL:2 += 3
         ELSEIF DICE2 <= 5 && DICE2 < 8
-            ABL:CHARA_NUM:93 += 2
-            ABL:CHARA_NUM:91 += 1
+            STORE_ABL:2 += 2
+            STORE_ABL:0 += 1
         ELSE
-            ABL:CHARA_NUM:93 += 2
-            ABL:CHARA_NUM:92 += 1
+            STORE_ABL:2 += 2
+            STORE_ABL:1 += 1
         ENDIF
-		MAXBASE:CHARA_NUM:0 += 20
-		BASE:CHARA_NUM:0 += 20
-		MAXBASE:CHARA_NUM:1 += 120
-		BASE:CHARA_NUM:1 += 120
+		STORE_MAXBASE:0 += 20
+		STORE_MAXBASE:1 += 120
     CASE 703
     ;사제
         DICE2 = RAND:11
         IF DICE2 <= 0 && DICE2 < 5
-            ABL:CHARA_NUM:93 += 2
-            ABL:CHARA_NUM:91 += 1
+            STORE_ABL:2 += 2
+            STORE_ABL:0 += 1
         ELSEIF DICE2 <= 5 && DICE2 < 10
-            ABL:CHARA_NUM:93 += 2
-            ABL:CHARA_NUM:92 += 1
+            STORE_ABL:2 += 2
+            STORE_ABL:1 += 1
         ELSE
-            ABL:CHARA_NUM:91 += 1
-            ABL:CHARA_NUM:92 += 1
-            ABL:CHARA_NUM:93 += 1
+            STORE_ABL:0 += 1
+            STORE_ABL:1 += 1
+            STORE_ABL:2 += 1
         ENDIF
-		MAXBASE:CHARA_NUM:0 += 20
-		BASE:CHARA_NUM:0 += 20
-		MAXBASE:CHARA_NUM:1 += 90
-		BASE:CHARA_NUM:1 += 90
+		STORE_MAXBASE:0 += 20
+		STORE_MAXBASE:1 += 90
     CASE 704
     ;도적
         DICE2 = RAND:11
         IF DICE2 <= 0 && DICE2 < 5
-            ABL:CHARA_NUM:91 += 3
+            STORE_ABL:0 += 3
         ELSEIF DICE2 <= 5 && DICE2 < 8
-            ABL:CHARA_NUM:91 += 2
-            ABL:CHARA_NUM:92 += 1
+            STORE_ABL:0 += 2
+            STORE_ABL:1 += 1
         ELSE
-            ABL:CHARA_NUM:91 += 2
-            ABL:CHARA_NUM:93 += 1
+            STORE_ABL:0 += 2
+            STORE_ABL:2 += 1
         ENDIF
-		MAXBASE:CHARA_NUM:0 += 70
-		BASE:CHARA_NUM:0 += 70
-		MAXBASE:CHARA_NUM:1 += 30
-		BASE:CHARA_NUM:1 += 30
+		STORE_MAXBASE:0 += 70
+		STORE_MAXBASE:1 += 30
     CASE 705
     ;무녀
         DICE2 = RAND:11
         IF DICE2 <= 0 && DICE2 < 5
-            ABL:CHARA_NUM:91 += 1
-            ABL:CHARA_NUM:92 += 1
-            ABL:CHARA_NUM:93 += 1
+            STORE_ABL:0 += 1
+            STORE_ABL:1 += 1
+            STORE_ABL:2 += 1
         ELSEIF DICE2 <= 5 && DICE2 < 8
-            ABL:CHARA_NUM:93 += 2
-            ABL:CHARA_NUM:92 += 1
+            STORE_ABL:2 += 2
+            STORE_ABL:1 += 1
         ELSE
-            ABL:CHARA_NUM:93 += 2
-            ABL:CHARA_NUM:91 += 1
+            STORE_ABL:2 += 2
+            STORE_ABL:0 += 1
         ENDIF
-		MAXBASE:CHARA_NUM:0 += 50
-		BASE:CHARA_NUM:0 += 50
-		MAXBASE:CHARA_NUM:1 += 50
-		BASE:CHARA_NUM:1 += 50
+		STORE_MAXBASE:0 += 50
+		STORE_MAXBASE:1 += 50
     CASE 706
     ;궁수
         DICE2 = RAND:11
         IF DICE2 <= 0 && DICE2 < 5
-            ABL:CHARA_NUM:91 += 3
+            STORE_ABL:0 += 3
         ELSEIF DICE2 <= 5 && DICE2 < 8
-            ABL:CHARA_NUM:91 += 2
-            ABL:CHARA_NUM:92 += 1
+            STORE_ABL:0 += 2
+            STORE_ABL:1 += 1
         ELSE
-            ABL:CHARA_NUM:91 += 2
-            ABL:CHARA_NUM:93 += 1
+            STORE_ABL:0 += 2
+            STORE_ABL:2 += 1
         ENDIF
-		MAXBASE:CHARA_NUM:0 += 70
-		BASE:CHARA_NUM:0 += 70
-		MAXBASE:CHARA_NUM:1 += 30
-		BASE:CHARA_NUM:1 += 30
+		STORE_MAXBASE:0 += 70
+		STORE_MAXBASE:1 += 30
 ;+++++++++2차전직++++++++++
 
 
 ;+++++++++용사-성녀++++++++++
     CASE 752
     ;용사
-        ABL:CHARA_NUM:91 += 2
-        ABL:CHARA_NUM:92 += 2
-        ABL:CHARA_NUM:93 += 2
+        STORE_ABL:0 += 2
+        STORE_ABL:1 += 2
+        STORE_ABL:2 += 2
         IF RAND:2 == 0
-            ABL:CHARA_NUM:91 += 1
-            ABL:CHARA_NUM:92 += 1
-            ABL:CHARA_NUM:93 += 1
+            STORE_ABL:0 += 1
+            STORE_ABL:1 += 1
+            STORE_ABL:2 += 1
         ENDIF
-		MAXBASE:CHARA_NUM:0 += 150
-		BASE:CHARA_NUM:0 += 150
-		MAXBASE:CHARA_NUM:1 += 100
-		BASE:CHARA_NUM:1 += 100
+		STORE_MAXBASE:0 += 150
+		STORE_MAXBASE:1 += 100
     CASE 753
     ;성녀
         IF RAND:2 == 0
-            ABL:CHARA_NUM:91 += 2
-            ABL:CHARA_NUM:92 += 1
-            ABL:CHARA_NUM:93 += 3
+            STORE_ABL:0 += 2
+            STORE_ABL:1 += 1
+            STORE_ABL:2 += 3
         ELSE
-            ABL:CHARA_NUM:91 += 1
-            ABL:CHARA_NUM:92 += 2
-            ABL:CHARA_NUM:93 += 3
+            STORE_ABL:0 += 1
+            STORE_ABL:1 += 2
+            STORE_ABL:2 += 3
 		ENDIF
-		MAXBASE:CHARA_NUM:0 += 50
-		BASE:CHARA_NUM:0 += 50
-		MAXBASE:CHARA_NUM:1 += 200
-		BASE:CHARA_NUM:1 += 200
+		STORE_MAXBASE:0 += 50
+		STORE_MAXBASE:1 += 200
 ENDSELECT
 
 ;용사후보 보너스
@@ -1208,11 +1211,11 @@ IF TALENT:CHARA_NUM:751 == 1
     DICE2 = RAND:3
     SELECTCASE DICE2
         CASE 0
-            ABL:CHARA_NUM:91 += 1
+            STORE_ABL:0 += 1
         CASE 1
-            ABL:CHARA_NUM:92 += 1
+            STORE_ABL:1 += 1
         CASE 2
-            ABL:CHARA_NUM:93 += 1
+            STORE_ABL:2 += 1
     ENDSELECT
 ;용사일행 보너스
 ELSEIF TALENT:CHARA_NUM:754 == 1 && RAND:2 == 0
@@ -1220,11 +1223,11 @@ ELSEIF TALENT:CHARA_NUM:754 == 1 && RAND:2 == 0
     DICE2 = RAND:3
     SELECTCASE DICE2
         CASE 0
-            ABL:CHARA_NUM:91 += 1
+            STORE_ABL:0 += 1
         CASE 1
-            ABL:CHARA_NUM:92 += 1
+            STORE_ABL:1 += 1
         CASE 2
-            ABL:CHARA_NUM:93 += 1
+            STORE_ABL:2 += 1
     ENDSELECT
 ;전-용사일행 보너스
 ELSEIF TALENT:CHARA_NUM:755 == 1 && RAND:4 == 0
@@ -1232,18 +1235,15 @@ ELSEIF TALENT:CHARA_NUM:755 == 1 && RAND:4 == 0
     DICE2 = RAND:3
     SELECTCASE DICE2
         CASE 0
-            ABL:CHARA_NUM:91 += 1
+            STORE_ABL:0 += 1
         CASE 1
-            ABL:CHARA_NUM:92 += 1
+            STORE_ABL:1 += 1
         CASE 2
-            ABL:CHARA_NUM:93 += 1
+            STORE_ABL:2 += 1
     ENDSELECT
 ENDIF
 
-
-
-
-
+RETURN STORE_ABL:0, STORE_ABL:1, STORE_ABL:2, STORE_MAXBASE:0, STORE_MAXBASE:1
 
 ;--------------------------------------
 @RANDOM_NAME, ARG, CHARA

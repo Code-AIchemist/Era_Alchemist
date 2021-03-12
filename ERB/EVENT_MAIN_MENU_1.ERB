@@ -3,7 +3,14 @@
 ;---------------------------------------
 @SHOW_MY_ITEM
 CALL SHOP_SETTING
-PRINTFORML 소지금 {MONEY} %MONEYLABEL%
+PRINTFORM 소지금 {MONEY} %MONEYLABEL%
+IF MONEY:1 > 0
+    PRINTFORML (빚:{MONEY:1})
+ELSEIF MONEY:1 == 0
+    PRINTL
+ELSE
+    THROW 빚 계산 오류
+ENDIF
 PRINTL 
 ;아이템 출력문
 PRINT_ITEM
