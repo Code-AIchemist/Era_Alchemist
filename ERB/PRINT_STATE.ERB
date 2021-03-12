@@ -1,7 +1,7 @@
 ﻿;---------------------------------------
 ;@SHOW_TARGET_STATE, T_CHARA, ARG
 ;히로인 정보보기. INPUT명령어 넣지 않기.
-;ARG : -1=방문한 히로인, 1=히로인 정보보기
+;ARG : -1=방문한 히로인, 1=히로인 정보보기, 2=아나타 생성
 ;---------------------------------------
 @SHOW_TARGET_STATE, T_CHARA, ARG
 #DIM DYNAMIC T_CHARA
@@ -76,6 +76,7 @@ WHILE 1
     PRINTL
     
     IF ARG == 1
+    ;히로인 정보보기
         PRINTL                [88] 이전 캐릭터
         PRINTL                [22] 다음 캐릭터
         PRINTL
@@ -99,10 +100,11 @@ WHILE 1
                 PAGE_STATE = RESULT
         ENDSELECT
     ELSEIF ARG == -1
+    ;방문한 히로인
         PRINTL  [99] 꺼져!(내쫓기)
         PRINTL
         PRINTL  [1] 다른 것 같은데..
-        PRINTL  [0] 맞아. 이런 모습이야.
+        PRINTL  [0] 맞아. 이런 년이야.
         WHILE 1
             INPUT
             SELECTCASE RESULT
@@ -116,6 +118,18 @@ WHILE 1
                 CASEELSE
                     BREAK
             ENDSELECT
+        WEND
+    ELSEIF ARG == 2
+    ;아나타 생성
+        PRINTL
+        PRINTL  [1] 다른 것 같은데..
+        PRINTL  [0] 맞아. 이런 놈이야.
+        WHILE 1
+            INPUT
+            IF RESULT == 0 || RESULT == 1
+                RETURN RESULT
+            ELSE
+                BREAK
         WEND
     ELSE
         PRINTW 인수 ARG 오류.

@@ -4,21 +4,28 @@
 ;---------------------------------------
 @CUSTOM_ANATA
 
-CALL CHANGE_NAME_ANATA
-DRAWLINE
-CALL CHANGE_GAME_LV
-DRAWLINE
-CALL CHOOSE_BACKGROUND
-DRAWLINE
-CALL CHANGE_MASTER_BODY
-DRAWLINE
-CALL CHOOSE_MASTER_BASE_STATE
-DRAWLINE
-CALL CHOOSE_MASTER_TALENT
-DRAWLINE
-CALL CHOOSE_MASTER_ABL
-DRAWLINE
-CALL CHOOSE_MASTER_EXP
+WHILE 1
+    CALL CHANGE_NAME_ANATA
+    DRAWLINE
+    CALL CHANGE_GAME_LV
+    DRAWLINE
+    CALL CHOOSE_BACKGROUND
+    DRAWLINE
+    CALL CHANGE_MASTER_BODY
+    DRAWLINE
+    CALL CHOOSE_MASTER_BASE_STATE
+    DRAWLINE
+    CALL CHOOSE_MASTER_TALENT
+    DRAWLINE
+    CALL CHOOSE_MASTER_ABL
+    DRAWLINE
+    CALL CHOOSE_MASTER_EXP
+
+    PRINTFORMW 당신이 설정한 %조사처리(CALLNAME:MASTER,"을")% 불러옵니다.
+    CALL SHOW_TARGET_STATE, MASTER, 2
+    SIF RESULT == 0
+        BREAK
+WEND
 
 ;---------------------------------------
 ;@CHANGE_NAME_ANATA
@@ -150,21 +157,24 @@ RETURN 0
 ;이 함수에서 CFLAG - BMI, P_SIZE는 실제 값이 아닌 단계로 표현할 것.
 #DIM DYNAMIC STORE_TARGET
 ;타겟 저장용
+#DIM DYNAMIC F_CNT_1
+;FOR돌리기용 변수
 
 STORE_TARGET = TARGET
 TARGET = MASTER
 ;타겟 임시로 마스터화.
+
 PRINTL
 PRINTFORMW  %UNICODE(0x25B6)%당신의 과거는 어떠했나요?
 PRINTL
 PRINTL
 
 WHILE 1
-    REPEAT 11
+    FOR F_CNT_1,0,11
         SETCOLOR 0x3BBD00
-        PRINTFORML  [{COUNT}] %STR:(6101+COUNT)%
+        PRINTFORML  [{F_CNT_1}] %STR:(6101+F_CNT_1)%
         RESETCOLOR
-        SELECTCASE COUNT
+        SELECTCASE F_CNT_1
             CASE 0
                 PRINTL      어린시절 당신은 도서관에서 책을 읽으며 시간을 보냈습니다. (+기초연금술, 공격,방어 -10)
             CASE 1
@@ -188,7 +198,7 @@ WHILE 1
             CASE 10
                 PRINTL      당신의 아버지는 꽤 큰 규모의 상단을 가지고 있었고, 당신은 5번째 아들이였습니다. 회계에 대해 열심히 공부하였습니다. (매출+5%, 돈+5000)
         ENDSELECT
-    REND
+    NEXT
     PRINTL
     ;출력
 
@@ -313,11 +323,11 @@ PRINTL
 PRINTL
 
 WHILE 1
-    REPEAT 12
+    FOR F_CNT_1,0,12
         SETCOLOR 0x3BBD00
-        PRINTFORML  [{COUNT}] %STR:(6201+COUNT)%
+        PRINTFORML  [{F_CNT_1}] %STR:(6201+F_CNT_1)%
         RESETCOLOR
-        SELECTCASE COUNT
+        SELECTCASE F_CNT_1
             CASE 0
                 PRINTL      고약한 성격의 연금술사의 밑으로 들어가 몇가지 지식을 배웠습니다 (+기초연금술,+대량제작Ⅰ, 공격,방어 -10)
             CASE 1
@@ -327,7 +337,7 @@ WHILE 1
             CASE 3
                 PRINTL      대부분의 시간을 정력을 쌓는데만 시간을 보냈습니다. (+절륜, +능숙한손가락, +혀놀림, 기교+3)
             CASE 4
-                PRINTL      마음씨 좋은 당신은 친구의 보증을 서주었다가, 빚더미에 앉게 되었습니다. 호구라고 소문이 자자하군요. (빚 -500000, 소문LV+5)
+                PRINTL      마음씨 좋은 당신은 친구의 보증을 서주었다가, 빚더미에 앉게 되었습니다. 호구라고 소문이 자자하군요. (빚+500000, 소문LV+5)
             CASE 5
                 PRINTL      지금은 은퇴했지만 정보길드의 길드원이였습니다. 밉보이지 않으려면 손님인 정보길드원에게 대폭할인 해줘야 합니다. (소문LV+5, 매출-10%)
             CASE 6
@@ -343,7 +353,7 @@ WHILE 1
             CASE 11
                 PRINTL      당신과 야스를 하면 갑자기 행운이 찾아온다는 소문이 생겼습니다. 덕분인지 슬쩍 와서 대가없이 야스를 바라는 여자가 찾아옵니다. (소문LV+2, 합의O인 대상자 방문확률 생성, 행운+1)
         ENDSELECT
-    REND
+    NEXT
     ;출력
     PRINTL
 
@@ -466,9 +476,9 @@ WHILE 1
             ;좆크기 - 거인학살좆
             저주각인:0 = 1
             ;거대조루의 저주
-            REPEAT 6
-                TALENT:(COUNT+701) = 0
-            REND
+            FOR F_CNT_1,0,6
+                TALENT:(F_CNT_1+701) = 0
+            NEXT
             TALENT:702 = 1
             ;직업:마법사
             CFLAG:13 = 702
@@ -487,9 +497,9 @@ WHILE 1
             ;과거 저장
             ABL:10 += 5
             MONEY += 1000
-            REPEAT 6
-                TALENT:(COUNT+701) = 0
-            REND
+            FOR F_CNT_1,0,6
+                TALENT:(F_CNT_1+701) = 0
+            NEXT
             TALENT:704 = 1
             ;직업:도적
             CFLAG:13 = 704
@@ -527,29 +537,29 @@ PRINTL
 
 
 WHILE 1
-    REPEAT 8
+    FOR F_CNT_1,0,8
         SETCOLOR 0x3BBD00
-        PRINTFORML  [{COUNT}] %STR:(6301+COUNT)%
+        PRINTFORML  [{F_CNT_1}] %STR:(6301+F_CNT_1)%
         RESETCOLOR
-        SELECTCASE COUNT
+        SELECTCASE F_CNT_1
             CASE 0
                 PRINTL      여관을 부모님께 물려받았습니다. (돈+5000)
             CASE 1
-                PRINTL      무릎에 화살을 맞은 것이 악화되어 은퇴하였지만 실력이 꽤 좋았습니다. 그동안 모았던 돈과 대출로 여관하나를 차렸습니다. (빚-10000000, 공격,방어 +50, 소문LV+10)
+                PRINTL      무릎에 화살을 맞은 것이 악화되어 은퇴하였지만 실력이 꽤 좋았습니다. 그동안 모았던 돈과 대출로 여관하나를 차렸습니다. (빚+30000000, 공격,방어 +50, 소문LV+10)
             CASE 2
                 PRINTL      꽤 큰 인신매매 조직의 조직원입니다. 조직은 당신을 믿고 이 여관을 맡겼습니다. 조직을 위해 매번 일정기간 안에 위험을 감수하고 대상자를 팔거나 돈을 바쳐야합니다. 당신께서 보스가 되면 모든 수입이 당신께 되지 않을까요? 뒷골목은 주먹이 가깝습니다. (10일마다 매출에 비례하여 조직에 돈을 내거나 대상자를 팔아야합니다.)
             CASE 3
                 PRINTL      당신은 도박꾼들 사이에서 전설이라 칭해지는 도박사 입니다. 당신은 도박을 하며 상대방을 농락하며 승리하였고, 몇번은 귀족을 상대로 승리하여 건물도 몇채나 얻어냈습니다. 그러나 너무 욕심을 낸 탓이였을까요? 어느날 밤길에 습격을 받았고, 당신을 살기위해 오늘 얻은 '던전도시 아헤가'의 허름한 여관의 땅문서만 가지고 헐레벌떡 도시를 빠져나올 수 밖에 없었습니다.(공격,방어 -50, 돈+5000, 행운+5)
             CASE 4
-                PRINTL      본래 30년은 감옥에서 썩어야 했지만, 당신은 어떤 특별한 이유로 출소하게 되었습니다. 그리고 그 특별한 이유를 만들어 준 어떤 사람이 먹고살길이 막막한 당신을 위해 허름한 여관을 살 수 있도록 무이자 대출을 해줬습니다. 그러나 세상에 공짜는 없는법. 무슨일이 일어나게 될까요? 그리고 여성 실종사건이 있을때마다 경비원들은 당신을 의심할 것입니다. (위험도 상승률 2배, 빚-50000000, 기교+5)
+                PRINTL      본래 30년은 감옥에서 썩어야 했지만, 당신은 어떤 특별한 이유로 출소하게 되었습니다. 그리고 그 특별한 이유를 만들어 준 어떤 사람이 먹고살길이 막막한 당신을 위해 허름한 여관을 살 수 있도록 무이자 대출을 해줬습니다. 그러나 세상에 공짜는 없는법. 무슨일이 일어나게 될까요? 그리고 여성 실종사건이 있을때마다 경비원들은 당신을 의심할 것입니다. (위험도 상승률 2배, 빚+50000000, 기교+5)
             CASE 5
                 PRINTL      당신은 여관업을 하기 위해 꽤 오랜시간 공부하고 돈을 준비해왔습니다. 다만 돈은 역시 여전히 부족하기에 대출하였습니다. (빛-30000000, 외관LV+20, 객실LV+20, 소문LV+5, 요리LV+10)
             CASE 6
-                PRINTL      당신은 연금술의 발전을 위해서 인체실험이 불가피함을 깨달았습니다. 연금술 길드에서는 인체실험은 자원자 이외의 사람에게 하는 것은 절대로 허가 하지 않았죠. 그러나 곧 좋은 아이디어를 생각해냈습니다. 여관을 운영하면서 손님들에게 약을 몰래 먹여 실험결과를 보는 것입니다! 당신은 그 목적을 위해 대출까지 받아가며 여관 하나를 장만 했습니다. (빚 -50000000, 직업:마법사, +기초연금술, +연금지식Ⅰ, +대량제작Ⅰ)
+                PRINTL      당신은 연금술의 발전을 위해서 인체실험이 불가피함을 깨달았습니다. 연금술 길드에서는 인체실험은 자원자 이외의 사람에게 하는 것은 절대로 허가 하지 않았죠. 그러나 곧 좋은 아이디어를 생각해냈습니다. 여관을 운영하면서 손님들에게 약을 몰래 먹여 실험결과를 보는 것입니다! 당신은 그 목적을 위해 대출까지 받아가며 여관 하나를 장만 했습니다. (빚+50000000, 직업:마법사, +기초연금술, +연금지식Ⅰ, +대량제작Ⅰ)
             CASE 7
                 PRINTL      당신은 전설적인 연금술사 밑에서 조수역할을 수행하고 있었습니다. 전설적인 연금술사는 수명이 다 해 몇일전 세상을 떠났습니다. 당신은 자유의 몸이 되었죠. 부모와 같았던 창조주이자 주인을 위해 묘를 만들어 드리고, 처음이자 마지막으로 눈물을 흘리며 재산들을 챙겨서 '던전도시 아헤가'로 향했습니다. 그곳에서 삶의 목적을 찾을 수 있을까요? (+기초연금술, 돈+2000)
         ENDSELECT
-    REND
+    NEXT
     ;출력
     PRINTL
 
@@ -564,7 +574,7 @@ WHILE 1
         CASE 1
             ;은퇴한 용병
             당신의_과거_배경:2 = RESULT
-            MONEY:1 += 10000000
+            MONEY:1 += 30000000
             ABL:91 += 50
             ABL:92 += 50
             소문LV += 10
@@ -612,9 +622,9 @@ WHILE 1
             TALENT:900 = 1
             TALENT:901 = 1
             TALENT:921 = 1
-            REPEAT 6
-                TALENT:(COUNT+701) = 0
-            REND
+            FOR F_CNT_1,0,6
+                TALENT:(F_CNT_1+701) = 0
+            NEXT
             TALENT:702 = 1
             CFLAG:13 = 702
             ;직업:마법사
@@ -656,6 +666,8 @@ TARGET = STORE_TARGET
 ;P 단계 -> 수치화용 변수
 #DIM DYNAMIC LOCK_FACE_COSTUME,8
 ;외형 변화 잠금을 위한 저장
+#DIM DYNAMIC F_CNT_1
+;FOR돌리기용 변수
 
 STORE_TARGET = TARGET
 TARGET = MASTER
@@ -716,16 +728,16 @@ WHILE 1
     DRAWLINE
     PRINTL
     PRINT  용모 : 
-    REPEAT 3
-        SIF BODY_NAME:0:COUNT != ""
-            CALL PRINT_WHAT_CHOOSE(TALENT:31,COUNT-1,BODY_NAME:0:COUNT,101+COUNT)
-    REND
+    FOR F_CNT_1,0,3
+        SIF BODY_NAME:0:F_CNT_1 != ""
+            CALL PRINT_WHAT_CHOOSE(TALENT:31,F_CNT_1-1,BODY_NAME:0:F_CNT_1,101+F_CNT_1)
+    NEXT
     PRINTL
     PRINT  외관연령 : 
-    REPEAT 4
-        SIF BODY_NAME:1:COUNT != ""
-            CALL PRINT_WHAT_CHOOSE(TALENT:32,COUNT-1,BODY_NAME:1:COUNT,201+COUNT)
-    REND
+    FOR F_CNT_1,0,4
+        SIF BODY_NAME:1:F_CNT_1 != ""
+            CALL PRINT_WHAT_CHOOSE(TALENT:32,F_CNT_1-1,BODY_NAME:1:F_CNT_1,201+F_CNT_1)
+    NEXT
     PRINTL
     PRINT  종족 : 인간
 
@@ -733,38 +745,38 @@ WHILE 1
     PRINTL
     PRINT  체형 : 
     ;난쟁이,거인 추가 코드
-    ;REPEAT 7
-    ;    SIF BODY_NAME:2:COUNT != ""
-    ;        CALL PRINT_WHAT_CHOOSE(TALENT:131,COUNT-3,BODY_NAME:3:COUNT,401+COUNT)
-    ;REND
-    REPEAT 5
-        SIF BODY_NAME:3:COUNT != ""
-            CALL PRINT_WHAT_CHOOSE(TALENT:131,COUNT-2,BODY_NAME:3:COUNT,402+COUNT)
-    REND
+    ;FOR F_CNT_1,0,7
+    ;    SIF BODY_NAME:2:F_CNT_1 != ""
+    ;        CALL PRINT_WHAT_CHOOSE(TALENT:131,F_CNT_1-3,BODY_NAME:3:F_CNT_1,401+F_CNT_1)
+    ;NEXT
+    FOR F_CNT_1,0,5
+        SIF BODY_NAME:3:F_CNT_1 != ""
+            CALL PRINT_WHAT_CHOOSE(TALENT:131,F_CNT_1-2,BODY_NAME:3:F_CNT_1,402+F_CNT_1)
+    NEXT
     PRINTL
     PRINT  살집 : 
-    REPEAT 6
-        SIF BODY_NAME:4:COUNT != ""
-            CALL PRINT_WHAT_CHOOSE(FAT_LV,COUNT-2,BODY_NAME:4:COUNT,501+COUNT)
-    REND
+    FOR F_CNT_1,0,6
+        SIF BODY_NAME:4:F_CNT_1 != ""
+            CALL PRINT_WHAT_CHOOSE(FAT_LV,F_CNT_1-2,BODY_NAME:4:F_CNT_1,501+F_CNT_1)
+    NEXT
     PRINTL
     PRINT  페니스크기 : 
-    REPEAT 6
-        SIF BODY_NAME:5:COUNT != ""
-            CALL PRINT_WHAT_CHOOSE(P_LV,COUNT-2,BODY_NAME:5:COUNT,601+COUNT)
-    REND
+    FOR F_CNT_1,0,6
+        SIF BODY_NAME:5:F_CNT_1 != ""
+            CALL PRINT_WHAT_CHOOSE(P_LV,F_CNT_1-2,BODY_NAME:5:F_CNT_1,601+F_CNT_1)
+    NEXT
     PRINTL
     PRINT  머리카락 : 
-    REPEAT 5
-        SIF BODY_NAME:6:COUNT != ""
-            CALL PRINT_WHAT_CHOOSE(CFLAG:37,COUNT-2,BODY_NAME:6:COUNT,701+COUNT)
-    REND
+    FOR F_CNT_1,0,5
+        SIF BODY_NAME:6:F_CNT_1 != ""
+            CALL PRINT_WHAT_CHOOSE(CFLAG:37,F_CNT_1-2,BODY_NAME:6:F_CNT_1,701+F_CNT_1)
+    NEXT
     PRINTL
     PRINT  음모 : 
-    REPEAT 4
-        SIF BODY_NAME:7:COUNT != ""
-            CALL PRINT_WHAT_CHOOSE(CFLAG:38,COUNT-2,BODY_NAME:7:COUNT,801+COUNT)
-    REND
+    FOR F_CNT_1,0,4
+        SIF BODY_NAME:7:F_CNT_1 != ""
+            CALL PRINT_WHAT_CHOOSE(CFLAG:38,F_CNT_1-2,BODY_NAME:7:F_CNT_1,801+F_CNT_1)
+    NEXT
     PRINTL
     PRINTL
 
@@ -1018,6 +1030,8 @@ ENDIF
 ;:0=직업번호, :1=직업LV
 #DIM DYNAMIC SEE_FLAG
 ;직업변경을 위한 플래그 변수
+#DIM DYNAMIC F_CNT_1
+;FOR돌리기용 변수
 #DIM DYNAMIC STORE_PLUS_POINT,10
 ;레벨업에 따른 보너스 상승치 임시 저장소
 #DIM DYNAMIC JOB_BATTLE_POINT,3
@@ -1036,12 +1050,12 @@ IF CFLAG:13 != 0
 ENDIF
 PRINTL
 CHOOSE_THIS:1 = 1 + RAND:20
-REPEAT (CHOOSE_THIS:1) - 1
+FOR F_CNT_1,0,(CHOOSE_THIS:1) - 1
     CALL JOB_LEVEL_UP, MASTER, CHOOSE_THIS:0
     FOR F, 0, 10
         STORE_PLUS_POINT:F += RESULT:0
     NEXT
-REND
+NEXT
 
 WHILE 1
     MAXBASE:0 = 0
@@ -1164,12 +1178,12 @@ WHILE 1
                 JOB_LV_DICE --
                 CHOOSE_THIS:1 = 1 + RAND:20
                 VARSET STORE_PLUS_POINT:0
-                REPEAT (CHOOSE_THIS:1) - 1
+                FOR F_CNT_1,0,(CHOOSE_THIS:1) - 1
                     CALL JOB_LEVEL_UP, MASTER, CHOOSE_THIS:0
                     FOR F, 0, 10
                         STORE_PLUS_POINT:F += RESULT:0
                     NEXT
-                REND
+                NEXT
             ELSE
                 PRINTW 준비된 주사위가 없습니다.
             ENDIF
@@ -1222,6 +1236,8 @@ TARGET = STORE_TARGET
 ;:0=현재선택한 소질 갯수,  :1=선택가능한 소질 갯수
 #DIM DYNAMIC CHOOSE_TALENT_FLAG, 70
 ;2지 이상 선택 가능한 TALENT에서 TP감소 오류 없게 만드는 플래그
+#DIM DYNAMIC F_CNT_1
+;FOR돌리기용 변수
 
 
 STORE_TARGET = TARGET
@@ -1231,10 +1247,10 @@ L = 0
 ;CLEAR할 줄 값 저장할 변수 초기화
 
 CHOOSE_TALENT_POINT:1 = 10
-REPEAT 70
-    SIF TALENT:(MASTER_TALENT_ID:COUNT) != 0
-        TALENT_LOCK_FLAG:COUNT = 1
-REND
+FOR F_CNT_1,0,70
+    SIF TALENT:(MASTER_TALENT_ID:F_CNT_1) != 0
+        TALENT_LOCK_FLAG:F_CNT_1 = 1
+NEXT
 
 WHILE 1
     PRINTL
@@ -1242,9 +1258,10 @@ WHILE 1
     PRINTFORML TP:{CHOOSE_TALENT_POINT:1 - CHOOSE_TALENT_POINT:0}
     ALIGNMENT LEFT
     PRINTL
+    L += 3
     PRINT  
-    REPEAT 70
-        SELECTCASE MASTER_TALENT_ID:COUNT
+    FOR F_CNT_1,0,70
+        SELECTCASE MASTER_TALENT_ID:F_CNT_1
         CASE 0
             CONTINUE
         CASE 21
@@ -1255,7 +1272,7 @@ WHILE 1
                 REAL_TALENT_NAME = 다부짐
                 SETCOLOR 0x0000FF
             ELSE
-                REAL_TALENT_NAME '= @"%TALENTNAME:(MASTER_TALENT_ID:COUNT)%"
+                REAL_TALENT_NAME '= @"%TALENTNAME:(MASTER_TALENT_ID:F_CNT_1)%"
             ENDIF
         CASE 22
             IF TALENT:22 == -1
@@ -1265,7 +1282,7 @@ WHILE 1
                 REAL_TALENT_NAME = 반항적
                 SETCOLOR 0x0000FF
             ELSE
-                REAL_TALENT_NAME '= @"%TALENTNAME:(MASTER_TALENT_ID:COUNT)%"
+                REAL_TALENT_NAME '= @"%TALENTNAME:(MASTER_TALENT_ID:F_CNT_1)%"
             ENDIF
         CASE 23
             IF TALENT:23 == -1
@@ -1275,7 +1292,7 @@ WHILE 1
                 REAL_TALENT_NAME = 거만함
                 SETCOLOR 0x0000FF
             ELSE
-                REAL_TALENT_NAME '= @"%TALENTNAME:(MASTER_TALENT_ID:COUNT)%"
+                REAL_TALENT_NAME '= @"%TALENTNAME:(MASTER_TALENT_ID:F_CNT_1)%"
             ENDIF
         CASE 24
             IF TALENT:24 == -1
@@ -1285,7 +1302,7 @@ WHILE 1
                 REAL_TALENT_NAME = 자존심높음
                 SETCOLOR 0x0000FF
             ELSE
-                REAL_TALENT_NAME '= @"%TALENTNAME:(MASTER_TALENT_ID:COUNT)%"
+                REAL_TALENT_NAME '= @"%TALENTNAME:(MASTER_TALENT_ID:F_CNT_1)%"
             ENDIF
         CASE 51
             IF TALENT:51 == -1
@@ -1295,7 +1312,7 @@ WHILE 1
                 REAL_TALENT_NAME = 호기심
                 SETCOLOR 0x0000FF
             ELSE
-                REAL_TALENT_NAME '= @"%TALENTNAME:(MASTER_TALENT_ID:COUNT)%"
+                REAL_TALENT_NAME '= @"%TALENTNAME:(MASTER_TALENT_ID:F_CNT_1)%"
             ENDIF
         CASE 52
             IF TALENT:52 == -1
@@ -1305,7 +1322,7 @@ WHILE 1
                 REAL_TALENT_NAME = 낙관적
                 SETCOLOR 0x0000FF
             ELSE
-                REAL_TALENT_NAME '= @"%TALENTNAME:(MASTER_TALENT_ID:COUNT)%"
+                REAL_TALENT_NAME '= @"%TALENTNAME:(MASTER_TALENT_ID:F_CNT_1)%"
             ENDIF
         CASE 61
             IF TALENT:61 == -1
@@ -1315,7 +1332,7 @@ WHILE 1
                 REAL_TALENT_NAME = 정조관념
                 SETCOLOR 0x0000FF
             ELSE
-                REAL_TALENT_NAME '= @"%TALENTNAME:(MASTER_TALENT_ID:COUNT)%"
+                REAL_TALENT_NAME '= @"%TALENTNAME:(MASTER_TALENT_ID:F_CNT_1)%"
             ENDIF
         CASE 62
             IF TALENT:62 == -1
@@ -1325,7 +1342,7 @@ WHILE 1
                 REAL_TALENT_NAME = 해방
                 SETCOLOR 0x0000FF
             ELSE
-                REAL_TALENT_NAME '= @"%TALENTNAME:(MASTER_TALENT_ID:COUNT)%"
+                REAL_TALENT_NAME '= @"%TALENTNAME:(MASTER_TALENT_ID:F_CNT_1)%"
             ENDIF
         CASE 64
             IF TALENT:64 == -1
@@ -1335,7 +1352,7 @@ WHILE 1
                 REAL_TALENT_NAME = 부끄러움
                 SETCOLOR 0x0000FF
             ELSE
-                REAL_TALENT_NAME '= @"%TALENTNAME:(MASTER_TALENT_ID:COUNT)%"
+                REAL_TALENT_NAME '= @"%TALENTNAME:(MASTER_TALENT_ID:F_CNT_1)%"
             ENDIF
         CASE 71
             IF TALENT:71 == -1
@@ -1345,7 +1362,7 @@ WHILE 1
                 REAL_TALENT_NAME = 고통에강하다
                 SETCOLOR 0x0000FF
             ELSE
-                REAL_TALENT_NAME '= @"%TALENTNAME:(MASTER_TALENT_ID:COUNT)%"
+                REAL_TALENT_NAME '= @"%TALENTNAME:(MASTER_TALENT_ID:F_CNT_1)%"
             ENDIF
         CASE 73
             IF TALENT:73 == -1
@@ -1355,7 +1372,7 @@ WHILE 1
                 REAL_TALENT_NAME = 포션민감
                 SETCOLOR 0x0000FF
             ELSE
-                REAL_TALENT_NAME '= @"%TALENTNAME:(MASTER_TALENT_ID:COUNT)%"
+                REAL_TALENT_NAME '= @"%TALENTNAME:(MASTER_TALENT_ID:F_CNT_1)%"
             ENDIF
         CASE 81
             IF TALENT:81 == -1
@@ -1365,7 +1382,7 @@ WHILE 1
                 REAL_TALENT_NAME = 습득빠름
                 SETCOLOR 0x0000FF
             ELSE
-                REAL_TALENT_NAME '= @"%TALENTNAME:(MASTER_TALENT_ID:COUNT)%"
+                REAL_TALENT_NAME '= @"%TALENTNAME:(MASTER_TALENT_ID:F_CNT_1)%"
             ENDIF
         CASE 101
             IF TALENT:101 == -1
@@ -1375,7 +1392,7 @@ WHILE 1
                 REAL_TALENT_NAME = 쾌감에솔직
                 SETCOLOR 0x0000FF
             ELSE
-                REAL_TALENT_NAME '= @"%TALENTNAME:(MASTER_TALENT_ID:COUNT)%"
+                REAL_TALENT_NAME '= @"%TALENTNAME:(MASTER_TALENT_ID:F_CNT_1)%"
             ENDIF
         CASE 112
             IF TALENT:112 == -1
@@ -1388,7 +1405,7 @@ WHILE 1
                 REAL_TALENT_NAME = 여성기피
                 SETCOLOR 0x00FF00
             ELSE
-                REAL_TALENT_NAME '= @"%TALENTNAME:(MASTER_TALENT_ID:COUNT)%"
+                REAL_TALENT_NAME '= @"%TALENTNAME:(MASTER_TALENT_ID:F_CNT_1)%"
             ENDIF
         CASE 140
             IF TALENT:140 == -1
@@ -1398,7 +1415,7 @@ WHILE 1
                 REAL_TALENT_NAME = 근육질
                 SETCOLOR 0x0000FF
             ELSE
-                REAL_TALENT_NAME '= @"%TALENTNAME:(MASTER_TALENT_ID:COUNT)%"
+                REAL_TALENT_NAME '= @"%TALENTNAME:(MASTER_TALENT_ID:F_CNT_1)%"
             ENDIF
         CASE 151
             IF TALENT:151 == -1
@@ -1408,7 +1425,7 @@ WHILE 1
                 REAL_TALENT_NAME = 회복빠름
                 SETCOLOR 0x0000FF
             ELSE
-                REAL_TALENT_NAME '= @"%TALENTNAME:(MASTER_TALENT_ID:COUNT)%"
+                REAL_TALENT_NAME '= @"%TALENTNAME:(MASTER_TALENT_ID:F_CNT_1)%"
             ENDIF
         CASE 152
             IF TALENT:152 == -1
@@ -1418,18 +1435,18 @@ WHILE 1
                 REAL_TALENT_NAME = 숙면
                 SETCOLOR 0x0000FF
             ELSE
-                REAL_TALENT_NAME '= @"%TALENTNAME:(MASTER_TALENT_ID:COUNT)%"
+                REAL_TALENT_NAME '= @"%TALENTNAME:(MASTER_TALENT_ID:F_CNT_1)%"
             ENDIF
         CASE 75, 76
-            IF TALENT:(MASTER_TALENT_ID:COUNT) != 0
+            IF TALENT:(MASTER_TALENT_ID:F_CNT_1) != 0
                 SETCOLOR 0xFF000B
-                REAL_TALENT_NAME '= @"%TALENTNAME:(MASTER_TALENT_ID:COUNT)%" + "LV" + @"{TALENT:(MASTER_TALENT_ID:COUNT)}"
+                REAL_TALENT_NAME '= @"%TALENTNAME:(MASTER_TALENT_ID:F_CNT_1)%" + "LV" + @"{TALENT:(MASTER_TALENT_ID:F_CNT_1)}"
             ELSE
-                REAL_TALENT_NAME '= @"%TALENTNAME:(MASTER_TALENT_ID:COUNT)%"
+                REAL_TALENT_NAME '= @"%TALENTNAME:(MASTER_TALENT_ID:F_CNT_1)%"
             ENDIF
         CASEELSE
-            REAL_TALENT_NAME '= @"%TALENTNAME:(MASTER_TALENT_ID:COUNT)%"
-            SIF TALENT:(MASTER_TALENT_ID:COUNT) != 0
+            REAL_TALENT_NAME '= @"%TALENTNAME:(MASTER_TALENT_ID:F_CNT_1)%"
+            SIF TALENT:(MASTER_TALENT_ID:F_CNT_1) != 0
                 SETCOLOR 0x808080
         ENDSELECT
 
@@ -1437,7 +1454,7 @@ WHILE 1
         ARGS '= "[" + REAL_TALENT_NAME + "]"
         REAL_TALENT_NAME '= @"%ARGS%"
 
-        IF TALENT_LOCK_FLAG:COUNT == 1
+        IF TALENT_LOCK_FLAG:F_CNT_1 == 1
         ;고정되는 소질. 이름앞에 * 표시.
             ARGS '= "*" + REAL_TALENT_NAME
             REAL_TALENT_NAME '= @"%ARGS%"
@@ -1445,23 +1462,25 @@ WHILE 1
             PRINTPLAINFORM %REAL_TALENT_NAME%
         ELSE
         ;수정가능한 소질.
-            PRINTBUTTON @"%REAL_TALENT_NAME%", COUNT
+            PRINTBUTTON @"%REAL_TALENT_NAME%", F_CNT_1
         ENDIF
         RESETCOLOR
         
-        IF COUNT != 0 && COUNT%7 == 0
+        IF F_CNT_1 != 0 && F_CNT_1%7 == 0
             PRINTL
-            L++
+            L ++
         ENDIF
         ;줄바꿈
         PRINT  
-    REND
+    NEXT
     PRINTL
     PRINTL
     PRINTL [999] 결정
+    L += 3
     ;출력
 
     INPUT
+    L += 1
     ;위의 SELECTCASE의 번호들과 아래의 SELECTCASE의 번호들은 내용이 같을 수는 있으나 번호는 다름
     ;위는 TALENT의 실제 번호들, 아래는 MASTER_TALENT_ID의 순서번호.
     SELECTCASE RESULT
@@ -1539,6 +1558,7 @@ WHILE 1
             ENDIF
     ENDSELECT
     CLEARLINE L
+    L = 0
     ;PRINT 덮어씌기
 WEND
 
@@ -1574,6 +1594,8 @@ TARGET = STORE_TARGET
 ;ABL의 번호 저장용
 #DIM DYNAMIC ABL_POINT,15
 ;ABL 설정할 값 임시 저장용
+#DIM DYNAMIC F_CNT_1
+;FOR돌리기용 변수
 
 STORE_TARGET = TARGET
 TARGET = MASTER
@@ -1583,40 +1605,42 @@ L = 0
 
 PRINTL
 WHILE 1
-    REPEAT 15
-        IF COUNT!=0 && ((COUNT%4)==0)
+    FOR F_CNT_1,0,15
+        IF F_CNT_1!=0 && ((F_CNT_1%4)==0)
             PRINTL
             L ++
         ENDIF
 
-        PRINTFORM %ABLNAME:(MASTER_ABL_ID:COUNT),10,RIGHT%:{ABL_POINT:COUNT}
+        PRINTFORM %ABLNAME:(MASTER_ABL_ID:F_CNT_1),10,RIGHT%:{ABL_POINT:F_CNT_1}
         PRINT     
-        IF ABL_POINT:COUNT > 1
-            PRINTBUTTON @"[－]",(11+COUNT*10)
+        IF ABL_POINT:F_CNT_1 > 1
+            PRINTBUTTON @"[－]",(11+F_CNT_1*10)
             SETCOLOR 0x808080
             PRINTPLAIN [＋]
             RESETCOLOR
-        ELSEIF ABL_POINT:COUNT <= 0
+        ELSEIF ABL_POINT:F_CNT_1 <= 0
             SETCOLOR 0x808080
             PRINTPLAIN [－]
             RESETCOLOR
-            PRINTBUTTON @"[＋]",(12+COUNT*10)
+            PRINTBUTTON @"[＋]",(12+F_CNT_1*10)
         ELSE
-            PRINTBUTTON @"[－]",(11+COUNT*10)
-            PRINTBUTTON @"[＋]",(12+COUNT*10)
+            PRINTBUTTON @"[－]",(11+F_CNT_1*10)
+            PRINTBUTTON @"[＋]",(12+F_CNT_1*10)
         ENDIF
-    REND
+    NEXT
     PRINTL
     PRINTL
     PRINTL [999] 결정
+    L += 3
     ;출력
 
     INPUT
+    L += 1
     SELECTCASE RESULT
         CASE 999
-            REPEAT 15
-                ABL:(MASTER_ABL_ID:COUNT) += ABL_POINT:COUNT
-            REND
+            FOR F_CNT_1,0,15
+                ABL:(MASTER_ABL_ID:F_CNT_1) += ABL_POINT:F_CNT_1
+            NEXT
             BREAK
         CASEELSE
             IF RESULT%10 == 1
@@ -1630,6 +1654,7 @@ WHILE 1
             ENDIF
     ENDSELECT
     CLEARLINE L
+    L = 0
     ;PRINT 덮어씌기
 WEND
 
@@ -1677,9 +1702,11 @@ WHILE 1
     DRAWLINE
     PRINTL
     PRINTL [999] 결정
+    L += 4
     ;출력
 
     INPUT
+    L += 1
     LOCAL = RESULT
     SIF LOCAL == 999
         BREAK
@@ -1688,12 +1715,14 @@ WHILE 1
     PRINTFORM %EXPNAME:LOCAL%를 입력해주세요      
     PRINTBUTTON "[캔슬]",-1
     INPUT
+    L += 2
     SIF RESULT < 0
         CONTINUE
     EXP:ARG:LOCAL = MIN(RESULT, 30)
     CLEARLINE L
+    L = 0
+    LOCAL:1 = 0
     ;PRINT 덮어씌기
-    DRAWLINE
 WEND
 
 TARGET = STORE_TARGET
