@@ -126,10 +126,17 @@ WHILE 1
         PRINTL  [0] 맞아. 이런 놈이야.
         WHILE 1
             INPUT
-            IF RESULT == 0 || RESULT == 1
-                RETURN RESULT
-            ELSE
-                BREAK
+            SELECTCASE RESULT
+                CASE 1, 0
+                    RETURN RESULT
+                ;캐릭터 결정판단
+                CASE 111, 222, 333
+                    PAGE_STATE = RESULT
+                    BREAK
+                ;페이지 넘기기
+                CASEELSE
+                    BREAK
+            ENDSELECT
         WEND
     ELSE
         PRINTW 인수 ARG 오류.
@@ -659,8 +666,8 @@ ENDIF
 	"반발",     "ㅤ욕망ㅤ", "도축기능", "B감각", "가슴기술", "수간", "질사중독",
 	"최면",     "봉사정신", "낚시기능", "M감각", "혀기술ㅤ",         "", "항사중독",
 	"수면",     "노출벽",   "조제기능",     "", "허리기술",         "", "",
-	"마크",     "  분유  ", " 최면 ",   "행운 ", "",         "", "",
-	"마크",         "",     " 촉수 ",   "불행 ",       "",         "", "",
+	"마크",     "  분유  ", "ㅤ최면ㅤ",   "ㅤ행운", "",         "", "",
+	"마크",         "",     "ㅤ촉수ㅤ",   "ㅤ불행",       "",         "", "",
 	"마크",         "",     "",       "", "",         "", "",
 }
 
@@ -810,7 +817,12 @@ STORE_TARGET = TARGET
 TARGET = T_CHARA
 
 
-PRINTFORM  직업:%TALENTNAME:(CFLAG:13)%       
+PRINT  직업:
+IF CFLAG:13 == 0
+    PRINT 무직       
+ELSE
+    PRINTFORM %TALENTNAME:(CFLAG:13)%       
+ENDIF
 PRINTFORML LV:{CFLAG:4}
 
 PRINTFORML  공격:{ABL:91}     방어:{ABL:92}     마력:{ABL:93}
