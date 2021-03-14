@@ -34,7 +34,15 @@ WHILE 1
     PRINTFORM  신장:{NUM_FRONT}.{NUM_BACK}cm
     NUM_FRONT = (CFLAG:T_CHARA:33)/10
     NUM_BACK = (CFLAG:T_CHARA:33)%10
-    PRINTFORML      체중:{NUM_FRONT}.{NUM_BACK}kg
+    PRINTFORM      체중:{NUM_FRONT}.{NUM_BACK}kg
+    IF TALENT:T_CHARA:0 != 0
+    ;성별이 여자가 아닐 때
+        NUM_FRONT = (CFLAG:T_CHARA:39)/10
+        NUM_BACK = (CFLAG:T_CHARA:39)%10
+        PRINTFORML      페니스크기:{NUM_FRONT}.{NUM_BACK}cm
+    ELSE
+        PRINTL
+    ENDIF
     IF T_CHARA != 0
         NUM_FRONT = (CFLAG:T_CHARA:34)/10
         NUM_BACK = (CFLAG:T_CHARA:34)%10
@@ -233,6 +241,36 @@ SELECTCASE TALENT:T_CHARA:806
 ENDSELECT
 SIF TALENT:T_CHARA:806 > 1
     PRINTL 급 용병
+
+PRINTL
+PRINT  머리길이:
+SELECTCASE CFLAG:T_CHARA:37
+    CASE -2
+        PRINT 머머리
+    CASE -1
+        PRINT 원형탈모
+    CASE 0
+        PRINT 짧은
+    CASE 1
+        PRINT 단발
+    CASE 2
+        PRINT 장발
+ENDSELECT
+PRINTL
+PRINT  음모:
+SELECTCASE CFLAG:T_CHARA:38
+    CASE -2
+        PRINT 없음
+    CASE -1
+        PRINT 조금
+    CASE 0
+        PRINT 보통
+    CASE 1
+        PRINT 수북
+    CASE 2
+        PRINT 정글
+ENDSELECT
+PRINTL
 
 L_COUNT = 0
 PRINTL
@@ -745,6 +783,53 @@ ENDSELECT
 ;개행용 변수
 
 DRAWLINE
+
+IF TALENT:T_CHARA:0 != 1
+;남자가 아닐 때 - V조임
+;헐렁함/느슨함/풀어짐/보통/명기/쫄깃함/꽉조임
+    PRINT  V조임:
+    SELECTCASE CFLAG:T_CHARA:40
+        CASE -3
+            PRINT 헐렁함
+        CASE -2
+            PRINT 느슨함
+        CASE -1
+            PRINT 풀어짐
+        CASE 0
+            PRINT 보통
+        CASE 1
+            PRINT 명기
+        CASE 2
+            PRINT 쫄깃함
+        CASE 3
+            PRINT 꽉조임
+    ENDSELECT
+    PRINT        
+ENDIF
+
+IF (FLAG:30 == 1 && TALENT:T_CHARA:0 == 1) || TALENT:T_CHARA:0 != 1
+;남자는 플래그가 켜졌을 때만 보임.
+;헐렁함/느슨함/풀어짐/보통/명기/쫄깃함/꽉조임
+    PRINT  A조임:
+    SELECTCASE CFLAG:T_CHARA:40
+        CASE -3
+            PRINT 헐렁함
+        CASE -2
+            PRINT 느슨함
+        CASE -1
+            PRINT 풀어짐
+        CASE 0
+            PRINT 보통
+        CASE 1
+            PRINT 명기
+        CASE 2
+            PRINT 쫄깃함
+        CASE 3
+            PRINT 꽉조임
+    ENDSELECT
+    PRINTL
+    PRINTL
+ENDIF
 
 FOR F_COUNT, 0, 100
 	SIF !STRLENS(EXPNAME:F_COUNT)

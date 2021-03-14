@@ -83,7 +83,11 @@ WHILE 1
     PRINTL
 ;--
     PRINT  주간장부 작성하기
-    PRINTBUTTON @"[수정]",1009
+    IF 당신의_과거_배경:2 == 2
+        PRINTPLAIN [고정]
+    ELSE
+        PRINTBUTTON @"[수정]",1009
+    ENDIF
     IF CF_CHANGE:4 == 1
         PRINT - 
         IF FLAG:29 == 1
@@ -96,6 +100,24 @@ WHILE 1
             CALL MENUBUTTON_2_ON_OFF, 1, 1011,"OFF"
         ELSEIF FLAG:29 == 0
             CALL MENUBUTTON_2_ON_OFF, 0, 1011,"OFF"
+        ENDIF
+    ENDIF
+    PRINTL
+;--
+    PRINT  남자의 A조임보기
+    PRINTBUTTON @"[수정]",1012
+    IF CF_CHANGE:5 == 1
+        PRINT - 
+        IF FLAG:30 == 1
+            CALL MENUBUTTON_2_ON_OFF, 0, 1013,"ON"
+        ELSEIF FLAG:30 == 0
+            CALL MENUBUTTON_2_ON_OFF, 1, 1013,"ON"
+        ENDIF
+        PRINT       
+        IF FLAG:30 == 1
+            CALL MENUBUTTON_2_ON_OFF, 1, 1014,"OFF"
+        ELSEIF FLAG:30 == 0
+            CALL MENUBUTTON_2_ON_OFF, 0, 1014,"OFF"
         ENDIF
     ENDIF
     PRINTL
@@ -133,10 +155,12 @@ WHILE 1
         CASE 1008
             CF_CHANGE:3 = 1
         CASE 1009
-            IF CF_CHANGE:4 == 0
-                CF_CHANGE:4 = 1
-            ELSEIF CF_CHANGE:4 == 1
-                CF_CHANGE:4 = 0
+            IF 당신의_과거_배경:2 != 2
+                IF CF_CHANGE:4 == 0
+                    CF_CHANGE:4 = 1
+                ELSEIF CF_CHANGE:4 == 1
+                    CF_CHANGE:4 = 0
+                ENDIF
             ENDIF
         CASE 1010
             FLAG:29 = 1
@@ -144,6 +168,16 @@ WHILE 1
             FLAG:29 = 0
             주간매출액:9 = 0
             PRINTW 주간장부를 다시 작성하기 시작해도 저번주 주간매출을 확인할 수 없습니다.
+        CASE 1012
+            IF CF_CHANGE:5 == 0
+                CF_CHANGE:5 = 1
+            ELSEIF CF_CHANGE:5 == 1
+                CF_CHANGE:5 = 0
+            ENDIF
+        CASE 1013
+            FLAG:30 = 1
+        CASE 1014
+            FLAG:30 = 0
         CASE 0
             RETURN 0
     ENDSELECT

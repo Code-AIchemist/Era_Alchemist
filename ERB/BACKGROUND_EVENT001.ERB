@@ -1,0 +1,65 @@
+﻿
+
+;**주인공의 배경설정에 따라 일어나는 이벤트**
+;형식 - @BACK_설정시간대_설정한배경_일어날 이벤트(숫자로-001부터)
+;EX) @BACK_1_7_001 - 1=당신의_과거_배경:1, 7=당신의_과거_배경:1:7
+
+
+;---------------------------------------
+;@BACK_1_7_001
+;배경1 - 저주받은 마법사
+;저주해제 이벤트
+;---------------------------------------
+@BACK_1_7_001
+#DIMS DYNAMIC PENIS_NAME,10
+;페니스 크기 문자열
+#DIM DYNAMIC P_LV
+
+PENIS_NAME:0 '= "소추", "단소", "보통", "왕좆", "과부제조기", "거인학살좆"
+
+PRINTL
+PRINTFORML %ITEMNAME:2508%을 사용하여 '거대조루'의 저주를 해제하시겠습니까?
+PRINTL [0]예        [1]아니오
+
+WHILE 1
+    SELECTCASE RESULT
+        CASE 0
+            TALENT:75 = 0
+            ;조루 초기화
+            CFLAG:39 = 0
+            ;페니스크기 보통화.
+            저주각인:0 = 0
+            ;거대조루의 저주해제
+            ITEM:2508 --
+            ;아이템 사용
+            WHILE 1
+                PRINTL 페니스 크기를 다시 설정합니다.
+                PRINTL
+                PRINT  페니스크기 : 
+                FOR F_CNT_1,0,6
+                    SIF BODY_NAME:5:F_CNT_1 != ""
+                        CALL PRINT_WHAT_CHOOSE(P_LV,F_CNT_1-2,PENIS_NAME:F_CNT_1,601+F_CNT_1)
+                NEXT
+                CALL SET_PENIS_SIZE(MASTER,P_LV)
+
+                PRINTFORML  페니스크기:{(CFLAG:39)/10}.{(CFLAG:39)%10}cm
+                
+                PRINTL  [0] 조금만 바꿔보자.
+                PRINTL  [1] 이 크기야!
+
+                INPUT
+                SELECTCASE RESULT
+                    CASE 601, 602, 603, 604, 605, 606
+                    ;페니스크기
+                        P_LV = RESULT-603
+                    CASE 0
+                    ;다시하기
+                    CASE 1
+                        RETURN 0
+                ENDSELECT
+            WEND
+        CASE 1
+            RETURN 0
+    ENDSELECT
+WEND
+

@@ -720,7 +720,7 @@ BODY_NAME:5:0 '= "소추", "단소", "보통", "왕좆", "과부제조기", "거
 ;좆
 BODY_NAME:6:0 '= "머머리", "원형탈모", "짧은", "단발", "장발"
 ;머리카락
-BODY_NAME:7:0 '= "없음", "조금", "보통", "정글"
+BODY_NAME:7:0 '= "없음", "조금", "보통", "수북", "정글"
 ;음모
 WHILE 1
     ;용모 CHOOSE_WHAT:0
@@ -773,7 +773,7 @@ WHILE 1
     NEXT
     PRINTL
     PRINT  음모 : 
-    FOR F_CNT_1,0,4
+    FOR F_CNT_1,0,5
         SIF BODY_NAME:7:F_CNT_1 != ""
             CALL PRINT_WHAT_CHOOSE(CFLAG:38,F_CNT_1-2,BODY_NAME:7:F_CNT_1,801+F_CNT_1)
     NEXT
@@ -837,7 +837,7 @@ WHILE 1
             ELSE
                 PRINTW 배경으로 결정된 사항은 변경할 수 없습니다.
             ENDIF
-        CASE 801, 802, 803, 804
+        CASE 801, 802, 803, 804, 805
         ;음모
             IF LOCK_FACE_COSTUME:7 == 0
                 CFLAG:38 = RESULT-803
@@ -947,38 +947,50 @@ CFLAG:33 = CFLAG:42 * CFLAG:32 * CFLAG:32 / 10000000
 ;kg = BMI(*100) * 키(*10) *키(*10) / 10000000 
 ;BMI와 키를 이용해서 몸무게 계산.
 
+CALL SET_PENIS_SIZE(MASTER,P_LV)
+
+TARGET = STORE_TARGET
+;타겟 복귀
+
+
+;---------------------------------------
+;@SET_PENIS_SIZE(C_ID,P_LV)
+;페니스 크기 설정하는 함수.
+;---------------------------------------
+@SET_PENIS_SIZE(C_ID,P_LV)
+#DIM DYNAMIC C_ID
+;캐릭터 번호
+#DIM DYNAMIC P_LV
+;페니스 사이즈 단계
+
+
 ;페니스크기 *10
 SELECTCASE P_LV
     CASE -2
     ;소추-1~30
         CALL GIVE_RAND_NUM, 1, 30
-        CFLAG:39 = RESULT
+        CFLAG:C_ID:39 = RESULT
     CASE -1
     ;단소-30~110
         CALL GIVE_RAND_NUM, 30, 110
-        CFLAG:39 = RESULT
+        CFLAG:C_ID:39 = RESULT
     CASE 0
     ;보통-110~160
         CALL GIVE_RAND_NUM, 110, 160
-        CFLAG:39 = RESULT
+        CFLAG:C_ID:39 = RESULT
     CASE 1
     ;왕좆-160~230
         CALL GIVE_RAND_NUM, 160, 230
-        CFLAG:39 = RESULT
+        CFLAG:C_ID:39 = RESULT
     CASE 2
     ;과부제조기-230~350
         CALL GIVE_RAND_NUM, 230, 350
-        CFLAG:39 = RESULT
+        CFLAG:C_ID:39 = RESULT
     CASE 3
     ;거인학살좆-500~1500
         CALL GIVE_RAND_NUM, 500, 1500
-        CFLAG:39 = RESULT
+        CFLAG:C_ID:39 = RESULT
 ENDSELECT
-
-
-TARGET = STORE_TARGET
-;타겟 복귀
-
 
 
 ;---------------------------------------
