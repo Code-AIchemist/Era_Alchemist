@@ -5,7 +5,152 @@
 ;구매 이벤트 처리 함수
 ;---------------------------------------
 @PRINT_SMALL_SHOP
-CLEARLINE
+
+WHILE 1
+    PRINTL 
+    DRAWLINEFORM %UNICODE(0x2550)%
+    FONTBOLD ;굵게
+    SETFONT "アメリ·ガームンド·BT"
+    PRINTFORML     %UNICODE(0x25C8)% Item
+    SETFONT
+    FONTREGULAR
+    PRINTL
+    CALL SHOW_MY_ITEM
+    PRINTL
+    PRINTL
+
+    PRINTL [0] 구입하기
+    PRINTL [1] 판매하기
+    PRINTL
+    PRINTL [99] 뒤로가기
+    PRINTL
+
+    INPUT
+    SELECTCASE RESULT
+        CASE 0
+            CALL BUY_SMALL_SHOP
+        CASE 1
+            CALL SELL_SMALL_SHOP
+        CASE 99
+            RETURN 0
+    ENDSELECT
+WEND
+
+
+
+;---------------------------------------
+;@SHOW_SELL_ITEM
+;판매할 아이템 보여주는 함수
+;---------------------------------------
+@SHOW_SELL_ITEM
+#DIM DYNAMIC F_COUNT
+;FOR용 변수
+#DIM DYNAMIC L_COUNT
+;개행용 변수
+#DIMS DYNAMIC SUM_ARGS
+;결합-출력용 변수
+#DIM DYNAMIC T_PRICE
+;판매될 할인된 가격
+
+FOR F_COUNT,1,2999
+    IF ITEM:F_COUNT > 0
+        T_PRICE = ITEMPRICE:F_COUNT
+        TIMES T_PRICE, 0.7
+        SUM_ARGS '= "(" + @"%TOSTR(ITEM:F_COUNT)%" + "개)" + @"-%TOSTR(T_PRICE)%%MONEYLABEL%"
+        PRINTFORM  [{F_COUNT}] %ITEMNAME:F_COUNT%%SUM_ARGS,10,LEFT%
+        L_COUNT ++
+    ENDIF
+    ;출력
+    IF L_COUNT%4 == 0 && L_COUNT != 0
+        PRINTL
+        L_COUNT++
+    ENDIF
+    ;개행
+NEXT
+PRINTL
+PRINTL
+PRINTL
+PRINTL  [9999] 돌아가기
+
+
+;---------------------------------------
+;@Q_SELL_MANY,I_NUM
+;아이템 판매할 갯수 묻는 함수
+;---------------------------------------
+@Q_SELL_MANY,I_NUM
+#DIM DYNAMIC I_NUM
+;선택된 아이템 번호
+
+PRINTFORML  %ITEMNAME:I_NUM%를 몇 개 판매하시겠습니까?({ITEM:I_NUM})
+PRINTL [0]취소   [99]전부
+INPUT
+SIF RESULT > ITEM:I_NUM
+    RESULT = ITEM:I_NUM
+RETURN RESULT
+
+
+
+
+;---------------------------------------
+;@SELL_SMALL_SHOP
+;'상점' 판매하기 함수
+;@@Q_SELL_MANY,I_NUM
+;아이템 판매할 갯수 묻는 함수
+;@@SHOW_SELL_ITEM
+;판매할 아이템 보여주는 함수
+;---------------------------------------
+@SELL_SMALL_SHOP
+#DIM DYNAMIC S_COUNT
+;판매할 아이템 갯수
+#DIM DYNAMIC S_NUM
+;판매할 아이템 번호
+#DIM DYNAMIC S_PRICE
+;판매될 아이템 1개의 가격
+
+WHILE 1
+    PRINTL 
+    DRAWLINEFORM %UNICODE(0x2550)%
+    FONTBOLD ;굵게
+    SETFONT "アメリ·ガームンド·BT"
+    PRINTFORML     %UNICODE(0x25C8)% Item
+    SETFONT
+    FONTREGULAR
+    PRINTL
+    CALL SHOW_SELL_ITEM
+    PRINTL
+    ;출력
+    INPUT
+    IF RESULT > 800 && RESULT < 2999
+        FLAG:0 = 1
+        ;행동틱
+        S_NUM = RESULT
+        ;판매할 아이템 번호
+        CALL Q_SELL_MANY,S_NUM
+        S_COUNT = RESULT
+        ;판매할 아이템 갯수
+        ITEM:S_NUM -= S_COUNT
+        ;소지 아이템 갯수 감소(판매)
+        
+        S_PRICE = ITEMPRICE:S_NUM
+        TIMES S_PRICE, 0.7
+        MONEY += S_PRICE * S_COUNT
+        ;아이템 판매한 값 증가
+        PRINTFORML %ITEMNAME:S_NUM%을(를) {S_COUNT}개 판매하였습니다.(+{S_PRICE * S_COUNT}%MONEYLABEL%)
+    ELSEIF RESULT == 9999
+        RETURN 0
+    ELSE
+        PRINTW 잘못된 입력입니다.
+    ENDIF
+    ;입력
+WEND
+
+
+
+;---------------------------------------
+;@BUY_SMALL_SHOP
+;'상점' 구입하기 함수
+;---------------------------------------
+@BUY_SMALL_SHOP
 $INPUT_LOOP
 DRAWLINEFORM %UNICODE(0x2550)%
 FONTBOLD ;굵게
@@ -30,21 +175,21 @@ PRINTL
 PRINT_SHOPITEM
 PRINTL
 PRINTL
-PRINTL [1001]돌아가기
+PRINTL [9999]돌아가기
 PRINTL
 DRAWLINEFORM %UNICODE(0x2500)%
 PRINTL
 
 INPUT
 ;조교템 구입
-IF (RESULT >= 0 && RESULT < 20) && ITEMSALES:RESULT == 1
+IF (RESULT > 0 && RESULT < 20) && ITEMSALES:RESULT == 1
     ;단수
     CALL EVENT_BUY_SOMETHING,1,RESULT
     FLAG:0 = 1
     GOTO INPUT_LOOP
 
 ;소모템 구입
-ELSEIF (RESULT >= 20 && RESULT < 50) && ITEMSALES:RESULT == 1
+ELSEIF ((RESULT > 1000 && RESULT < 1030) || RESULT == 1551) && ITEMSALES:RESULT == 1
     ;99개
     CALL EVENT_BUY_SOMETHING,99,RESULT
     GOTO INPUT_LOOP
@@ -67,14 +212,12 @@ ELSEIF (RESULT > 300 && RESULT < 801) && ITEMSALES:RESULT == 1
     CALL EVENT_BUY_SOMETHING,3,RESULT
     GOTO INPUT_LOOP
 
-ELSEIF RESULT == 1001
+ELSEIF RESULT == 9999
     RETURN 0
 
 ELSE
     PRINTL 존재하지 않는 상품입니다.
     GOTO INPUT_LOOP
 ENDIF
-
-
 
 
