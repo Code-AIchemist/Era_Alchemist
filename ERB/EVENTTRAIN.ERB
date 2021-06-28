@@ -1,0 +1,19 @@
+﻿@EVENTTRAIN
+BASE:MASTER:21 = 0
+;아나타의 사정 0으로
+SIF ASSI > 0
+	BASE:ASSI:21 = 0
+;어시가 있다면, 어시의 사정 0으로
+BASE:TARGET:21 = 0
+;타겟의 사정 0으로
+
+;만약 타겟이 수면상태라면
+
+    ;수면제를 먹었다면
+
+
+
+;이 함수가 사용 되었다면, BEGIN TRAIN 명령어가 사용 되었다는 뜻
+;BEGIN TRAIN 명령어 사용시 TFLAG 전부 초기화 됨.
+PLAYER = MASTER
+;진행자를 아나타로

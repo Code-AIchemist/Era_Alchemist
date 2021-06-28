@@ -5,6 +5,10 @@
 ;채집 가능한 아이템 종류
 ;COLLECT_ITEM_PROBABILITY,10
 ;아이템들 드랍률
+;#DIM HOW_MANY_ENEMY
+;전투중인 적들 수
+;#DIM FIGHTING_ENEMY_NUM, LIMIT_ENEMY(=3)
+;전투중인 적들 번호
 ;---------------------------------------
 @SEARCH_NEAR, FIELD_LEVEL
 #DIM DYNAMIC SUM_PROBABILITY = 0
@@ -37,6 +41,7 @@ FOR SEARCH_COUNT,0,5
         ;정답 찾기
             IF COLLECT_ITEM_KIND:COUNT == 0
             ;'꽝'일 경우
+                KILL_FLAG = 0
                 PRINTW .............탐색실패
                 PRINTL
             ELSEIF COLLECT_ITEM_KIND:COUNT == 2999
@@ -47,8 +52,10 @@ FOR SEARCH_COUNT,0,5
                 ;게임오버니까 빨리 나가
                     RETURN 0
             ELSE
+            ;채집 성공
                 ;ABL:MASTER:53 = 채집기능
                 ;(RAND:21 ~~) - 운빨 추가 획득
+                KILL_FLAG = 0
                 HOW_MANY = 1 + ((ABL:MASTER:73)/3) + ((RAND:(21+(ABL:MASTER:83)-(ABL:MASTER:84))+FIELD_LEVEL)/10) + (FIELD_LEVEL/5)
                 IF ITEM:(COLLECT_ITEM_KIND:COUNT) + HOW_MANY < 100
                     ITEM:(COLLECT_ITEM_KIND:COUNT) += HOW_MANY
@@ -72,7 +79,10 @@ FOR SEARCH_COUNT,0,5
     ;승리
         PRINTL
         PRINTL  적을 물리쳤다!
-        CALL ROOTING_ITEM, RESULT, FIELD_LEVEL
+            FOR F:99,0,HOW_MANY_ENEMY
+                CALL ROOTING_MONSTER_ITEM, FIGHTING_ENEMY_NUM:(F:99), FIELD_LEVEL
+            NEXT
+        WAIT
     ENDIF
 NEXT
 
@@ -88,6 +98,8 @@ FLAG:0 = 2
 ;적 출현 확률
 ;#DIM FIELD_LEVEL
 ;지역의 레벨
+;#DIM HOW_MANY_ENEMY
+;전투중인 적들 수
 ;---------------------------------------
 @MEET_ENEMY, FIELD_LEVEL
 #DIM DYNAMIC FIELD_LEVEL
@@ -339,12 +351,12 @@ WHILE BASE:MASTER:0 > 0 && ENEMY_HP > 0
 WEND
 
 ;---------------------------------------
-;@ROOTING_ITEM, ENEMY_NUM, FIELD_LEVEL
+;@ROOTING_MONSTER_ITEM, ENEMY_NUM, FIELD_LEVEL
 ;#DIM SAVEDATA TRAINING_BODY_EXP
 ;육체 단련 EXP
 ;아이템 루팅
 ;---------------------------------------
-@ROOTING_ITEM, ENEMY_NUM, FIELD_LEVEL
+@ROOTING_MONSTER_ITEM, ENEMY_NUM, FIELD_LEVEL
 #DIM DYNAMIC HOW_MANY
 #DIM DYNAMIC ENEMY_NUM
 #DIM DYNAMIC FIELD_LEVEL
@@ -365,5 +377,4 @@ TRAINING_BODY_EXP += UP_EXP
 
 PRINTFORML %ITEMNAME:ENEMY_NUM%을 {HOW_MANY}개 획득하셨습니다!
 PRINTFORML 전투 경험치 {TRAINING_BODY_EXP}를 획득하셨습니다!
-
-WAIT
+PRINTL

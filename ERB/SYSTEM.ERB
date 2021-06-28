@@ -296,9 +296,9 @@ IF TIME == TIME_LIMIT-1
 ENDIF
 
 ;대상자 출현
-SIF TIME >= 1 && TIME < 5 && RAND:(10-(ABL:MASTER:83)+(ABL:MASTER:84)) == 0
+;SIF TIME >= 1 && TIME < 5 && RAND:(10-(ABL:MASTER:83)+(ABL:MASTER:84)) == 0
 ;실제 적용
-;SIF TIME >= 1 && TIME < 5
+SIF TIME >= 1 && TIME < 5
 ;확인용
     CALL ENTER_MY_HOTEL
 
