@@ -19,8 +19,8 @@ SIF TIME == 2 || TIME == 4  ;점심, 저녘
 @HOTEL_GUEST_CALL
 #DIM COMPARE_AB, 2
 #DIM DYNAMIC CHECK_IN_PEOPLE
-COMPARE_AB = 1 + (((DAY/10)+1) * 소문LV + (외관LV * 객실LV / (101 - BASE:MASTER:11))) / 10
-COMPARE_AB:1 = 1 + ((DAY/20)+1) * (외관LV + 객실LV + 소문LV) / 20
+COMPARE_AB = 1 + (((DAY/10)+1) * 소문LV + ((2 * 외관LV) / (101 - BASE:MASTER:11)))
+COMPARE_AB:1 = 1 + ((DAY/20)+1) * (외관LV + (2 * 소문LV)) / 10
 IF COMPARE_AB:1 >= COMPARE_AB:0
     CHECK_IN_PEOPLE = COMPARE_AB:1
 ELSE

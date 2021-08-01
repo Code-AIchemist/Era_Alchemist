@@ -5,6 +5,16 @@
 @CUSTOM_ANATA
 
 WHILE 1
+    RESETDATA
+    ;데이터 초기화
+    
+    ADDCHARA 0
+    ;주인공 캐릭터 추가
+    BASE:MASTER:10 = 0
+    ;위험도 초기화
+    BASE:MASTER:11 = 100
+    ;청결도 초기화
+
     CALL CHANGE_NAME_ANATA
     DRAWLINE
     CALL CHANGE_GAME_LV
@@ -1072,8 +1082,15 @@ NEXT
 WHILE 1
     MAXBASE:0 = 0
     BASE:0 = 0
+    ;체력
     MAXBASE:1 = 0
     BASE:1 = 0
+    ;기력
+    MAXBASE:21 = 10000
+    BASE:21 = 0
+    ;사정
+
+
     ;베이스 초기화
 
     ALIGNMENT CENTER
@@ -1497,6 +1514,12 @@ WHILE 1
     ;위는 TALENT의 실제 번호들, 아래는 MASTER_TALENT_ID의 순서번호.
     SELECTCASE RESULT
         CASE 999
+            IF TALENT:75 > 0 && TALENT:76 > 0
+            ;'조루'와 '지루'를 동시에 선택할 경우
+                PRINTFORMW '%TALENTNAME:75%'와 '%TALENTNAME:76%'을 동시에 선택할 수 없습니다.
+                CLEARLINE 1
+                CONTINUE
+            ENDIF
             IF CHOOSE_TALENT_POINT:1 > CHOOSE_TALENT_POINT:0
                 PRINTL TP가 남습니다. 이대로 저장하시겠습니까?
                 PRINTL [0] 예
@@ -1582,6 +1605,20 @@ ELSEIF TALENT:근육량 == 1
     ABL:91 += 5
     ABL:92 += 5
     ABL:93 -= 5
+ENDIF
+
+IF TALENT:75 > 0
+;조루일 경우
+    MAXBASE:21 -= 1000 * (TALENT:75)
+    SIF MAXBASE:21 <= 0
+        MAXBASE:21 = 100
+ELSEIF TALENT:76 > 0
+;지루일 경우
+    IF TALENT:76 <= 5
+        MAXBASE:21 += 1000 * (TALENT:76)
+    ELSE
+        MAXBASE:21 += 1500 * (TALENT:76)
+    ENDIF
 ENDIF
 
 TARGET = STORE_TARGET

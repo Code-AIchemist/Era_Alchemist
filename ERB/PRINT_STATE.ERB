@@ -6,63 +6,93 @@
 @SHOW_TARGET_STATE, T_CHARA, ARG
 #DIM DYNAMIC T_CHARA
 ;타겟 캐릭터 ID
+#DIM DYNAMIC SAVE_TARGET
+;원래 타겟 저장용 변수.
 #DIM DYNAMIC PAGE_STATE
 ;스테이터스 페이지
 #DIM DYNAMIC NUM_FRONT
 #DIM DYNAMIC NUM_BACK
 ;소숫점 앞, 뒤
+
+SAVE_TARGET = TARGET
+TARGET = T_CHARA
+;코드 간편화를 위해 잠시 옮김.
+
 PAGE_STATE = 111
 
 WHILE 1
     PRINTL
     DRAWLINEFORM %UNICODE(0x2550)%
-    PRINTFORM  %CALLNAME:T_CHARA%
+    PRINTFORM  %CALLNAME:TARGET%
     PRINT (
-    IF CFLAG:T_CHARA:31 < 20
+    IF CFLAG:31 < 20
         PRINTFORM %UNICODE(0x16A0)%%UNICODE(0x16A2)%%UNICODE(0x16B2)%%UNICODE(0x16B4)%
     ELSE
-        PRINTFORM {CFLAG:T_CHARA:31}세
+        PRINTFORM {CFLAG:31}세
     ENDIF
     PRINTL )
+
+    SIF MAXBASE:21 == 0
+        MAXBASE:21 = 10000
+    ;MAX사정 설정.
+    SIF TALENT:173 == 1 && MAXBASE:22 == 0
+        MAXBASE:22 = 5000
+    ;모유체질 일때, MAX모유 설정.
+    SIF MAXBASE:23 == 0
+        MAXBASE:23 = 1000
+    ;MAX요의 설정.
+    SIF MAXBASE:41 == 0
+        MAXBASE:41 = 1000
+    ;MAX위화감 설정
+    SIF MAXBASE:42 == 0
+        MAXBASE:42 = 1000
+    ;MAX수면도(기본) 설정
+    SIF MAXBASE:43 == 0
+        MAXBASE:43 = 1000
+    ;MAX취기 설정
+    SIF MAXBASE:44 == 0
+        MAXBASE:44 = 100
+    ;MAX피로 설정
+
     PRINT  
     CALL BASE_BAR(T_CHARA, "체력", 18, "초록")
     PRINT     
     CALL BASE_BAR(T_CHARA, "기력", 18, "파랑","「개행」")
 
-    NUM_FRONT = (CFLAG:T_CHARA:32)/10
-    NUM_BACK = (CFLAG:T_CHARA:32)%10
+    NUM_FRONT = (CFLAG:32)/10
+    NUM_BACK = (CFLAG:32)%10
     PRINTFORM  신장:{NUM_FRONT}.{NUM_BACK}cm
-    NUM_FRONT = (CFLAG:T_CHARA:33)/10
-    NUM_BACK = (CFLAG:T_CHARA:33)%10
+    NUM_FRONT = (CFLAG:33)/10
+    NUM_BACK = (CFLAG:33)%10
     PRINTFORM      체중:{NUM_FRONT}.{NUM_BACK}kg
-    IF TALENT:T_CHARA:0 != 0
+    IF TALENT:0 != 0
     ;성별이 여자가 아닐 때
-        NUM_FRONT = (CFLAG:T_CHARA:39)/10
-        NUM_BACK = (CFLAG:T_CHARA:39)%10
+        NUM_FRONT = (CFLAG:39)/10
+        NUM_BACK = (CFLAG:39)%10
         PRINTFORML      페니스크기:{NUM_FRONT}.{NUM_BACK}cm
     ELSE
         PRINTL
     ENDIF
     IF T_CHARA != 0
-        NUM_FRONT = (CFLAG:T_CHARA:34)/10
-        NUM_BACK = (CFLAG:T_CHARA:34)%10
+        NUM_FRONT = (CFLAG:34)/10
+        NUM_BACK = (CFLAG:34)%10
         PRINTFORM  B:{NUM_FRONT}.{NUM_BACK}cm
 
-        NUM_FRONT = (CFLAG:T_CHARA:35)/10
-        NUM_BACK = (CFLAG:T_CHARA:35)%10
+        NUM_FRONT = (CFLAG:35)/10
+        NUM_BACK = (CFLAG:35)%10
         PRINTFORM      W:{NUM_FRONT}.{NUM_BACK}cm
         
-        NUM_FRONT = (CFLAG:T_CHARA:36)/10
-        NUM_BACK = (CFLAG:T_CHARA:36)%10
+        NUM_FRONT = (CFLAG:36)/10
+        NUM_BACK = (CFLAG:36)%10
         PRINTFORML      H:{NUM_FRONT}.{NUM_BACK}cm
         
         PRINTL
         PRINT  호감도:
-        CALL PRINT_RANK(CFLAG:T_CHARA:1, "MAX_50000")
-        PRINTFORM  {CFLAG:T_CHARA:1}
+        CALL PRINT_RANK(CFLAG:1, "MAX_50000")
+        PRINTFORM  {CFLAG:1}
         PRINT        신뢰도:
-        CALL PRINT_RANK(CFLAG:T_CHARA:2, "MAX_20000")
-        PRINTFORML  {CFLAG:T_CHARA:2}
+        CALL PRINT_RANK(CFLAG:2, "MAX_20000")
+        PRINTFORML  {CFLAG:2}
     ENDIF
 
     SELECTCASE PAGE_STATE
@@ -151,7 +181,8 @@ WHILE 1
     ENDIF
 WEND
 
-
+TARGET = SAVE_TARGET
+;타겟 원위치.
 
 ;---------------------------------------
 ;@SHOW_TALENT_STATE, T_CHARA

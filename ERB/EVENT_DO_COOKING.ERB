@@ -1,24 +1,68 @@
 ﻿;---------------------------------------
-;음식에 수면약 타기
+;수면약 탈지 묻기
+;@Q_USE_SLEEP_POTION
 ;---------------------------------------
-@USE_SLEEP_POTION_ON_FOOD
+@Q_USE_SLEEP_POTION
+#DIM DYNAMIC F_COUNT1
+;FOR 돌리기용
+#DIM DYNAMIC SLEEP_POTION_SUM
+;수면제 갖고 있는 갯수의 합 - 0이면 이 함수 건너 띄기.
+
+SLEEP_POTION_SUM = 0
+FOR F_COUNT1,0,3
+    SLEEP_POTION_SUM += ITEM:(1531+F_COUNT1)
+NEXT
+SIF SLEEP_POTION_SUM == 0
+    RETURN
+;만약 수면제를 하나도 갖고 있지 않다면 건너띄기.
+
+WHILE 1
+    DRAWLINE
+    PRINTL
+    FOR F_COUNT1,0,3
+        PRINTFORML  [{F_COUNT1}]『%ITEMNAME:(1531+F_COUNT1)%』:{ITEM:(1531+F_COUNT1)}개
+    NEXT
+    PRINTFORML  [999] 뒤로가기
+    PRINTL
+    DRAWLINE
+    PRINTL
+    PRINTL 어떤 수면제를 사용 하시겠습니까?
+    
+    INPUT
+    
+    IF RESULT >= 0 && RESULT < 3 && ITEM:(1531+RESULT) > 0
+        BREAK
+    ELSEIF RESULT == 999
+        PRINTL
+        PRINTL
+        RETURN
+    ELSE
+        PRINTW 사용할 수 없습니다. 다시 확인해 주십시오.
+        PRINTL
+        PRINTL
+    ENDIF
+WEND
+
+CALL USE_SLEEP_POTION_ON_FOOD,(1531+RESULT)
+
+
+;---------------------------------------
+;음식에 수면약 타기
+;@USE_SLEEP_POTION_ON_FOOD, SLEEP_ITEM_CODE
+;---------------------------------------
+@USE_SLEEP_POTION_ON_FOOD, SLEEP_ITEM_CODE
+#DIM DYNAMIC SLEEP_ITEM_CODE
+;수면제 아이템 넘버
+
+ITEM:SLEEP_ITEM_CODE -= 1
+FLAG:4 = (SLEEP_ITEM_CODE - 1531) + 1
+;숫자가 높아질수록 효과가 좋은 수면제
+
 PRINTL
-PRINTFORML  『%ITEMNAME:1531%』을 음식에 뿌리시겠습니까?
-PRINT  [0] 아니오
-PRINT      
-PRINTL [1] 뿌린다
-INPUT
-SELECTCASE RESULT
-    CASE 0
-        RETURN 0
-    CASE 1
-        ITEM:1531 -= 1
-        FLAG:4 = 1
-        PRINTL
-        PRINTL  오늘 밤도 거짓된 순결을 내가 갖겠다!
-        PRINTL
-        PRINTW
-ENDSELECT
+PRINTFORML  %STR:6010%여관의 특제 비-법 소스를 넣었다.
+PRINTFORML  『%ITEMNAME:(SLEEP_ITEM_CODE)%』를 사용하였습니다.
+PRINTL
+PRINTW
 
 ;---------------------------------------
 ;요리하기

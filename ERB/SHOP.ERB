@@ -61,7 +61,7 @@ SELECTCASE MENU_NUM
         IF A > 0 && TIME < 5
             CALL DO_COOKING
             ;수면약은 저녘에만
-            SIF TIME > 2 && ITEM:1531 > 0
+            SIF TIME > 2
                 CALL USE_SLEEP_POTION_ON_FOOD
         ELSEIF TIME >= 5
             PRINTW 이 시간엔 실행할 수 없습니다

@@ -1,0 +1,47 @@
+﻿@EVENTTRAIN
+;이 함수가 사용 되었다면, BEGIN TRAIN 명령어가 사용 되었다는 뜻
+;BEGIN TRAIN 명령어 사용시 TFLAG 전부 초기화 됨.
+;TRAINNAME - Train.csv - 조교명령NAME ex)TRAINNAME:0 = 애무
+
+BASE:MASTER:21 = 0
+;아나타의 사정 0으로
+SIF ASSI > 0
+	BASE:ASSI:21 = 0
+;어시가 있다면, 어시의 사정 0으로
+BASE:TARGET:21 = 0
+;타겟의 사정 0으로
+
+IF CFLAG:301 == 1
+;만약 타겟이 수면상태(CFLAG:301)라면
+    CFLAG:300 = 1
+    ;망각상태(CFLAG:300) ON
+
+    IF FLAG:4 == 1
+    ;수면제1를 먹었다면
+        MAXBASE:42 = 5000
+        BASE:42 = (MAXBASE:42)
+    ELSEIF FLAG:4 > 1
+    ;수면제2이상을 먹었다면
+        MAXBASE:42 = 10000 * ((FLAG:4) - 1)
+        BASE:42 = (MAXBASE:42)
+    ELSE
+    ;수면제를 안 먹었다면
+        MAXBASE:42 = 1000
+        BASE:42 = (MAXBASE:42)
+    ENDIF
+    
+ELSE
+;수면상태(CFLAG:301)이 아니라면,
+    ;가능한 상태(CFLAG-302:최면,303:환각,304:만취,305:발정)
+
+ENDIF
+
+
+IF ASSIPLAY == 0
+    PLAYER = MASTER
+    ;조교자를 아나타로
+ELSE
+    PLAYER = ASSI
+    ;조교자를 어시로
+ENDIF
+
