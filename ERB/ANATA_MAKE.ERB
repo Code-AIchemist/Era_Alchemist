@@ -7,7 +7,9 @@
 WHILE 1
     RESETDATA
     ;데이터 초기화
-    
+    CALL SHOP_SETTING
+    CALL START_SETTING
+
     ADDCHARA 0
     ;주인공 캐릭터 추가
     BASE:MASTER:10 = 0
@@ -445,7 +447,7 @@ WHILE 1
                 ;과거 저장
                 ABL:83 += 3
                 ABL:93 -= 10
-                CALL GIVE_RAND_NUM, 50, 100
+                CALL GIVE_RAND_JUST_NUM, 50, 100
                 COOL_TIME_EVENT:0 = RESULT
                 ;:0=대요괴'구미호'의 부활까지 카운트 다운.
                 
@@ -870,7 +872,7 @@ TARGET = STORE_TARGET
 ;---------------------------------------
 ;@SET_ANATA_BODY(FAT_LV,P_LV)
 ;주인공 외형 세팅 함수
-;---@GIVE_RAND_NUM, RAND_MIN, RAND_MAX
+;---@GIVE_RAND_JUST_NUM, RAND_MIN, RAND_MAX
 ;---최소초과 최대이하에서 랜덤값 구하기
 ;---------------------------------------
 @SET_ANATA_BODY(FAT_LV,P_LV)
@@ -888,32 +890,32 @@ TARGET = MASTER
 SELECTCASE FAT_LV
     CASE -2
     ;마름 15이하
-        CALL GIVE_RAND_NUM, 1000, 1500
+        CALL GIVE_RAND_JUST_NUM, 1000, 1500
         CFLAG:42 = RESULT
         ;BMI*10
     CASE -1
     ;저체중 18.5이하
-        CALL GIVE_RAND_NUM, 1500, 1850
+        CALL GIVE_RAND_JUST_NUM, 1500, 1850
         CFLAG:42 = RESULT
         ;BMI*10
     CASE 0
     ;보통 23이하
-        CALL GIVE_RAND_NUM, 1850, 2300
+        CALL GIVE_RAND_JUST_NUM, 1850, 2300
         CFLAG:42 = RESULT
         ;BMI*10
     CASE 1
     ;과체중 25이하
-        CALL GIVE_RAND_NUM, 2300, 2500
+        CALL GIVE_RAND_JUST_NUM, 2300, 2500
         CFLAG:42 = RESULT
         ;BMI*10
     CASE 2
     ;비만 30이하
-        CALL GIVE_RAND_NUM, 2500, 3000
+        CALL GIVE_RAND_JUST_NUM, 2500, 3000
         CFLAG:42 = RESULT
         ;BMI*10
     CASE 3
     ;고도비만 35이하
-        CALL GIVE_RAND_NUM, 3000, 3500
+        CALL GIVE_RAND_JUST_NUM, 3000, 3500
         CFLAG:42 = RESULT
         ;BMI*10
 ENDSELECT
@@ -923,31 +925,31 @@ ENDSELECT
 SELECTCASE TALENT:131
     CASE -3
     ;난쟁이-100~800
-        CALL GIVE_RAND_NUM, 100, 800
+        CALL GIVE_RAND_JUST_NUM, 100, 800
         CFLAG:32 = RESULT
     CASE -2
     ;유아체형-800~1400
-        CALL GIVE_RAND_NUM, 800, 1400
+        CALL GIVE_RAND_JUST_NUM, 800, 1400
         CFLAG:32 = RESULT
     CASE -1
     ;작은체형-1400~1700
-        CALL GIVE_RAND_NUM, 1400, 1700
+        CALL GIVE_RAND_JUST_NUM, 1400, 1700
         CFLAG:32 = RESULT
     CASE 0
     ;보통-1700~1900
-        CALL GIVE_RAND_NUM, 1700, 1900
+        CALL GIVE_RAND_JUST_NUM, 1700, 1900
         CFLAG:32 = RESULT
     CASE 1
     ;장신-1900~2300
-        CALL GIVE_RAND_NUM, 1800, 2200
+        CALL GIVE_RAND_JUST_NUM, 1800, 2200
         CFLAG:32 = RESULT
     CASE 2
     ;거구-2300~3000
-        CALL GIVE_RAND_NUM, 2200, 2800
+        CALL GIVE_RAND_JUST_NUM, 2200, 2800
         CFLAG:32 = RESULT
     CASE 3
     ;거인-5000~9990
-        CALL GIVE_RAND_NUM, 4000, 9990
+        CALL GIVE_RAND_JUST_NUM, 4000, 9990
         CFLAG:32 = RESULT
 ENDSELECT
 ;TALENT의 체형으로 키 수치화
@@ -978,27 +980,27 @@ TARGET = STORE_TARGET
 SELECTCASE P_LV
     CASE -2
     ;소추-1~30
-        CALL GIVE_RAND_NUM, 1, 30
+        CALL GIVE_RAND_JUST_NUM, 1, 30
         CFLAG:C_ID:39 = RESULT
     CASE -1
     ;단소-30~110
-        CALL GIVE_RAND_NUM, 30, 110
+        CALL GIVE_RAND_JUST_NUM, 30, 110
         CFLAG:C_ID:39 = RESULT
     CASE 0
     ;보통-110~160
-        CALL GIVE_RAND_NUM, 110, 160
+        CALL GIVE_RAND_JUST_NUM, 110, 160
         CFLAG:C_ID:39 = RESULT
     CASE 1
     ;왕좆-160~230
-        CALL GIVE_RAND_NUM, 160, 230
+        CALL GIVE_RAND_JUST_NUM, 160, 230
         CFLAG:C_ID:39 = RESULT
     CASE 2
     ;과부제조기-230~350
-        CALL GIVE_RAND_NUM, 230, 350
+        CALL GIVE_RAND_JUST_NUM, 230, 350
         CFLAG:C_ID:39 = RESULT
     CASE 3
     ;거인학살좆-500~1500
-        CALL GIVE_RAND_NUM, 500, 1500
+        CALL GIVE_RAND_JUST_NUM, 500, 1500
         CFLAG:C_ID:39 = RESULT
 ENDSELECT
 
