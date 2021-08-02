@@ -166,8 +166,7 @@ WHILE 1
 	;직업 확정
 	CFLAG:MAKE_CHARA_NUM:13 = CHARA_JOB
 	;직업번호 기억하기.
-
-	PRINTW 기본능력치 + 직업확정
+	
 
 	;-----TALENT 설정-----
 	CALL SET_TALENT, MAKE_CHARA_NUM
@@ -231,8 +230,6 @@ WHILE 1
 		ENDIF
 	ENDIF
 
-	PRINTW 재능설정 완료
-
 	;-----직업LV 설정-----
 	;랜덤성을 위해 직업LV 한자리 수 더하기
 	DICE = (RAND:10)
@@ -276,8 +273,6 @@ WHILE 1
 		BASE:MAKE_CHARA_NUM:1 = MAXBASE:MAKE_CHARA_NUM:1
 	ENDIF
 
-	PRINTW 직업 설정 및 소지금 설정 완료
-	
 	;-----체형 조정-----
 	CALL CHAR_SIZE_GENERATE, MAKE_CHARA_NUM
 	IF RESULT:0 < 20 && RAND:3 != 0
