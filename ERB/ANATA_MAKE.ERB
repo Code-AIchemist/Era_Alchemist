@@ -73,6 +73,7 @@ ELSE
     IF RESULT == 0
         MASTERNAME:MASTER = %LOCALS%
         CALLNAME:MASTER = %LOCALS%
+        NAME:MASTER = %LOCALS%
         PRINTFORMW  「%LOCALS%」%조사만처리(LOCALS,"로")% 정해졌습니다.
         ;PRINTFORMW (이름은 언제든 CONFIG에서 변경할 수 있습니다)
     ELSEIF RESULT == 2
