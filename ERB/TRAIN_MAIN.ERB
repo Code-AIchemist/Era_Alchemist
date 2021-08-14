@@ -33,7 +33,7 @@ IF CFLAG:301 == 1
 ELSE
 ;수면상태(CFLAG:301)이 아니라면,
     ;가능한 상태(CFLAG-302:최면,303:환각,304:만취,305:발정)
-
+    
 ENDIF
 
 
@@ -44,4 +44,49 @@ ELSE
     PLAYER = ASSI
     ;조교자를 어시로
 ENDIF
+
+
+@SHOW_STATUS
+;조교 메인화면 - 보통 아나타와 타겟의 상태가 표시됨. TW에서는 타겟 변경할 수 있는 명령어도 넣어 여러 사람을 볼 수 있게 하였음.
+PRINTL
+DRAWLINE
+PRINTL
+
+PRINTFORMC %NAME:MASTER% 
+PRINT    
+CALL BASE_BAR(MASTER, "체력", 18, "초록")
+PRINT    
+CALL BASE_BAR(MASTER, "기력", 18, "파랑")
+PRINT    
+CALL BASE_BAR_REVERSE(MASTER, "사정", 18, "EXTRA")
+
+PRINTL
+DRAWLINE
+PRINTL
+
+CALL TAGET_BASIC_STATE, TARGET
+
+PRINTL
+
+[SKIPSTART]
+**예시
+-------------------------------
+
+ 아나타 체력(100/100)      기력(100/100)
+ 
+ -------------------------------
+ 
+ 타겟   체력(100/100)    기력(100/100)     피로도(0/100)
+           수면도(1000/1000)    취기(10000/10000) /
+
+ -------------------------------
+
+
+[SKIPEND]
+
+PRINTL
+DRAWLINE
+PRINTL
+
+
 

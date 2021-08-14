@@ -20,17 +20,11 @@ PRINTL
 ;청소하기
 ;---------------------------------------
 @CLEANING_ROOM
-#DIM TEMP_A
-
-IF BASE:MASTER:11 <= 80
-    BASE:MASTER:11 += 20
-    ;행동완료 -> 행동틱1감소
-ELSE
-    TEMP_A = MAXBASE:MASTER:11 - BASE:MASTER:11
-    BASE:MASTER:11 += TEMP_A
-ENDIF
-;깨끗함 유지시간
+BASE:MASTER:11 = MAXBASE:MASTER:11
+FLAG:0 = 1
+;행동완료 -> 행동틱1감소
 FLAG:3 = 2
+;깨끗함 유지시간
 
 ;---------------------------------------
 ;외관 장식

@@ -314,6 +314,7 @@ RETURN RACE_AGE
 #DIM HEIGHT_MIN
 
 #DIM KEEP_TARGET
+#DIM BUST_AVERAGE
 
 ;TARGET을 대피
 KEEP_TARGET = TARGET
@@ -478,19 +479,29 @@ CALL UNDER_BUST, ARG:0, CHAR_HEIGHT / 100
 CHAR_BUST_U = RESULT * 100
 
 ;가슴계 소질로 기초치 변화
+IF FLAG:31 == -1
+	BUST_AVERAGE = -2000
+ELSEIF FLAG:31 == 0
+	BUST_AVERAGE = 2000
+ELSEIF FLAG:31 == 1
+	BUST_AVERAGE = 6000
+ENDIF
 
 ;절벽 크기 지정
 IF TALENT:132 == -2
-	CHAR_BUST_T = 1000 + RAND:40 * 100
+	CHAR_BUST_T = 5000 + RAND:40 * 100
 ;빈유 크기 지정
 ELSEIF TALENT:132 == -1
 	CHAR_BUST_T = 7000 + RAND:60 * 100
+
+;-------------------------------------
+
 ;거유 크기 지정
 ELSEIF TALENT:132 > 0
-	CHAR_BUST_T = 20000 + RAND:2500
+	CHAR_BUST_T = 18000 + BUST_AVERAGE + RAND:2500
 ;폭유 크기 지정
 	IF TALENT:132 == 2
-		CHAR_BUST_T += 5000 + RAND:5000
+		CHAR_BUST_T += BUST_AVERAGE + 3000 + RAND:5000
 ;랜덤으로 더욱 거하게
 ;		IF RAND:2 == 0
 ;			CHAR_BUST_T += 18000 + RAND:2000 + RAND:2000 + RAND:3000
@@ -498,28 +509,28 @@ ELSEIF TALENT:132 > 0
 ;초유 크기 지정
 	ELSEIF TALENT:132 == 3
 		;폭유의 랜덤을 이쪽으로
-		CHAR_BUST_T += 5000 + RAND:5000
-		CHAR_BUST_T += 18000 + RAND:2000 + RAND:2000 + RAND:3000
+		CHAR_BUST_T += BUST_AVERAGE + 4000 + RAND:5000
+		CHAR_BUST_T += BUST_AVERAGE + 18000 + RAND:2000 + RAND:2000 + RAND:3000
 	ENDIF
 ;젖가슴 크기 지정
 ELSE
-	CHAR_BUST_T = 13200 + RAND:40 * 100
+	CHAR_BUST_T = BUST_AVERAGE + 13200 + RAND:40 * 100
 ENDIF
 
-;몸집이 작다고 빈유라고도 할 수 없지 보정 (거유 미만)
 SIF TALENT:131 < 0 && TALENT:132 > 0
 	CHAR_BUST_T += 1500 + RAND:1000
-;몸집이 클 때의 마이너스 보정
+;몸집이 작다고 빈유라고도 할 수 없지 보정 (거유 미만)
 SIF TALENT:131 > 0
 	CHAR_BUST_T -= 2000 + RAND:1000
-;출산 경험이 있으면 미량으로 치수 보정
+;몸집이 클 때의 마이너스 보정
 SIF EXP:81 > 0
 	CHAR_BUST_T += 200 + RAND:800
-;연령 보정(미량)
+;출산 경험이 있으면 미량으로 치수 보정
 SIF CHAR_AGE < 16
 	CHAR_BUST_T -= 2000 - CHAR_AGE * 100
-;가슴 결정
+;연령 보정(미량)
 CHAR_BUST = CHAR_BUST_U + CHAR_BUST_T
+;가슴 결정
 
 ;가슴 변화를 위해 날아오신 분, 다음은 체중 측정이에요
 SIF ARG:2 == 1

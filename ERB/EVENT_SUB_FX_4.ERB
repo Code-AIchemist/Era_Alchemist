@@ -12,5 +12,41 @@ WHILE !(RAND_MIN < TAKE_RAND && TAKE_RAND <= RAND_MAX)
 WEND
 RETURN TAKE_RAND
 
+;---------------------------------------
+;@HOW_OLD, C_ID
+;캐릭터의 나이 출력하기. 미성년자 미출력
+;---------------------------------------
+@HOW_OLD, C_ID
+#DIM C_ID
+;타겟의 넘버
+
+PRINT (
+IF CFLAG:C_ID:31 < 20
+    PRINTFORM %UNICODE(0x16A0)%%UNICODE(0x16A2)%%UNICODE(0x16B2)%%UNICODE(0x16B4)%
+ELSE
+    PRINTFORM {CFLAG:C_ID:31}세
+ENDIF
+PRINT )
+
+;---------------------------------------
+;@LOOK_BODY_SIZE, C_ID, CF_NUM
+;캐릭터의 신체 사이즈 출력하기.
+;---------------------------------------
+@LOOK_BODY_SIZE, C_ID, CF_NUM
+#DIM C_ID
+;타겟의 넘버
+#DIM CF_NUM
+;타겟의 사이즈의 넘버
+#DIM NUM_FRONT
+;정수
+#DIM NUM_BACK
+;소숫점 자리
+
+NUM_FRONT = (CFLAG:C_ID:CF_NUM)/10
+NUM_BACK = (CFLAG:C_ID:CF_NUM)%10
+
+RETURN NUM_FRONT, NUM_BACK
+
+
 
 

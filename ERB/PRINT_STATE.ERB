@@ -1,100 +1,140 @@
 ﻿;---------------------------------------
+;@TAGET_BASIC_STATE, C_ID
+;조교할 타겟의 기본적인 정보 출력
+;함수 실행전에 타겟을 지정해야함. 실행시 반드시 타겟을 먼저 지정하였는지 확인.
+;---------------------------------------
+@TAGET_BASIC_STATE, C_ID
+#DIM DYNAMIC F_N_1
+;FOR 돌리기용
+#DIM DYNAMIC SUM_FN1
+;FOR에서 합 연산용
+#DIM DYNAMIC C_ID
+;캐릭터 넘버
+
+DRAWLINEFORM %UNICODE(0x2550)%
+PRINTL
+PRINTFORM  %CALLNAME:C_ID%
+SIF C_ID != MASTER
+    CALL HOW_OLD, C_ID
+
+CALL LOOK_BODY_SIZE, C_ID, 32
+PRINTFORM   신장:{RESULT:0}.{RESULT:1}cm
+CALL LOOK_BODY_SIZE, C_ID, 33
+PRINTFORM      체중:{RESULT:0}.{RESULT:1}kg
+
+IF TALENT:C_ID:0 != 0
+;성별이 여자가 아닐 때
+    CALL LOOK_BODY_SIZE, C_ID, 39
+    PRINTFORML      페니스크기:{RESULT:0}.{RESULT:1}cm
+ELSE
+    PRINTL
+ENDIF
+
+IF C_ID != MASTER
+;타겟이 아나타가 아닐 때
+    CALL LOOK_BODY_SIZE, C_ID, 34
+    PRINTFORM  B:{RESULT:0}.{RESULT:1}cm
+    CALL CUP_SIZE, C_ID
+    PRINTFORM (%RESULTS:0%컵)
+    CALL LOOK_BODY_SIZE, C_ID, 35
+    PRINTFORM      W:{RESULT:0}.{RESULT:1}cm
+    CALL LOOK_BODY_SIZE, C_ID, 36
+    PRINTFORML      H:{RESULT:0}.{RESULT:1}cm
+
+    PRINTFORM  LV:{CFLAG:C_ID:4} %TALENTNAME:(CFLAG:C_ID:13)%    
+    PRINT  호감도:
+    CALL PRINT_RANK(CFLAG:C_ID:1, "MAX_50000")
+    PRINTFORM  {CFLAG:C_ID:1}
+    PRINT     신뢰도:
+    CALL PRINT_RANK(CFLAG:C_ID:2, "MAX_20000")
+    PRINTFORM  {CFLAG:C_ID:2}
+
+    PRINT     상태: 
+    SIF CFLAG:C_ID:301 == 1 || CFLAG:C_ID:302 == 1 || CFLAG:C_ID:306 == 1
+        CFLAG:C_ID:300 = 1
+        ;수면, 최면, 만취 중 하나로 '망각'상태
+    FOR F_N_1,0,7
+        IF CFLAG:C_ID:(300+F_N_1) == 1
+            IF F_N_1 == 0
+            ;망각 상태 일때
+                SETCOLOR 0xC07070
+                PRINTFORM %CFLAGNAME:300%  
+                RESETCOLOR
+                ;색깔 출력
+            ELSE
+                PRINTFORM %CFLAGNAME:(300+F_N_1)%  
+            ENDIF
+        ENDIF
+        SUM_FN1 += CFLAG:C_ID:(300+F_N_1)
+    NEXT
+
+    SIF SUM_FN1 == 0
+    ;상태이상이 아무것도 없을 경우
+        PRINT 정상
+    PRINTL
+ENDIF
+
+PRINT  
+CALL BASE_BAR(C_ID, "체력", 18, "초록")
+PRINT  
+CALL BASE_BAR(C_ID, "기력", 18, "파랑")
+PRINT  
+CALL BASE_BAR_REVERSE(C_ID, "취기", 18, "맥주색","「개행」")
+
+IF C_ID != MASTER
+;아나타가 아니라면
+    PRINT  
+    CALL BASE_BAR_REVERSE(C_ID, "피로", 18, "갈색")
+    IF CFLAG:C_ID:301 == 1
+        PRINT  
+        CALL BASE_BAR(C_ID, "수면도", 18, "옅은 보라색")
+    ENDIF
+    PRINTL
+ENDIF
+
+IF C_ID != MASTER
+;아나타가 아니라면
+    IF CFLAG:C_ID:401 != 0 || CFLAG:C_ID:402 != 0 || CFLAG:C_ID:403 != 0
+    ;덮쳤을 때
+        PRINT  
+        CALL BASE_BAR_REVERSE(C_ID, "사정", 18, "EXTRA")
+        IF TALENT:C_ID:173 != 0
+            PRINT  
+            CALL BASE_BAR_REVERSE(C_ID, "모유", 18, "모유색")
+        ENDIF
+        PRINT  
+        CALL BASE_BAR_REVERSE(C_ID, "요의", 18, "오렌지","「개행」")
+    ENDIF
+ELSE
+    PRINT  
+    CALL BASE_BAR_REVERSE(C_ID, "사정", 18, "EXTRA","「개행」")
+
+ENDIF
+
+PRINTL
+
+;---------------------------------------
 ;@SHOW_TARGET_STATE, T_CHARA, ARG
 ;히로인 정보보기. INPUT명령어 넣지 않기.
-;ARG : -1=방문한 히로인, 1=히로인 정보보기, 2=아나타 생성
+;ARG : -1=방문한 히로인, 1=타겟 정보보기, 2=아나타 생성
 ;---------------------------------------
 @SHOW_TARGET_STATE, T_CHARA, ARG
 #DIM DYNAMIC T_CHARA
 ;타겟 캐릭터 ID
-#DIM DYNAMIC SAVE_TARGET
-;원래 타겟 저장용 변수.
 #DIM DYNAMIC PAGE_STATE
 ;스테이터스 페이지
-#DIM DYNAMIC NUM_FRONT
-#DIM DYNAMIC NUM_BACK
-;소숫점 앞, 뒤
-
-SAVE_TARGET = TARGET
-TARGET = T_CHARA
-;코드 간편화를 위해 잠시 옮김.
 
 PAGE_STATE = 111
-
 WHILE 1
+    
+    SIF MAXBASE:T_CHARA:21 == 0
+    ;만약 MAX사정이 0일 경우 = 처음 타겟의 정보를 볼 경우
+        CALL CHECK_MAXBASE,T_CHARA, 0
+    ;타겟의 MAXBASE설정
+    
     PRINTL
-    DRAWLINEFORM %UNICODE(0x2550)%
-    PRINTFORM  %CALLNAME:TARGET%
-    PRINT (
-    IF CFLAG:31 < 20
-        PRINTFORM %UNICODE(0x16A0)%%UNICODE(0x16A2)%%UNICODE(0x16B2)%%UNICODE(0x16B4)%
-    ELSE
-        PRINTFORM {CFLAG:31}세
-    ENDIF
-    PRINTL )
-
-    SIF MAXBASE:21 == 0
-        MAXBASE:21 = 10000
-    ;MAX사정 설정.
-    SIF TALENT:173 == 1 && MAXBASE:22 == 0
-        MAXBASE:22 = 5000
-    ;모유체질 일때, MAX모유 설정.
-    SIF MAXBASE:23 == 0
-        MAXBASE:23 = 1000
-    ;MAX요의 설정.
-    SIF MAXBASE:41 == 0
-        MAXBASE:41 = 1000
-    ;MAX위화감 설정
-    SIF MAXBASE:42 == 0
-        MAXBASE:42 = 1000
-    ;MAX수면도(기본) 설정
-    SIF MAXBASE:43 == 0
-        MAXBASE:43 = 1000
-    ;MAX취기 설정
-    SIF MAXBASE:44 == 0
-        MAXBASE:44 = 100
-    ;MAX피로 설정
-
-    PRINT  
-    CALL BASE_BAR(T_CHARA, "체력", 18, "초록")
-    PRINT     
-    CALL BASE_BAR(T_CHARA, "기력", 18, "파랑","「개행」")
-
-    NUM_FRONT = (CFLAG:32)/10
-    NUM_BACK = (CFLAG:32)%10
-    PRINTFORM  신장:{NUM_FRONT}.{NUM_BACK}cm
-    NUM_FRONT = (CFLAG:33)/10
-    NUM_BACK = (CFLAG:33)%10
-    PRINTFORM      체중:{NUM_FRONT}.{NUM_BACK}kg
-    IF TALENT:0 != 0
-    ;성별이 여자가 아닐 때
-        NUM_FRONT = (CFLAG:39)/10
-        NUM_BACK = (CFLAG:39)%10
-        PRINTFORML      페니스크기:{NUM_FRONT}.{NUM_BACK}cm
-    ELSE
-        PRINTL
-    ENDIF
-    IF T_CHARA != 0
-        NUM_FRONT = (CFLAG:34)/10
-        NUM_BACK = (CFLAG:34)%10
-        PRINTFORM  B:{NUM_FRONT}.{NUM_BACK}cm
-
-        NUM_FRONT = (CFLAG:35)/10
-        NUM_BACK = (CFLAG:35)%10
-        PRINTFORM      W:{NUM_FRONT}.{NUM_BACK}cm
-        
-        NUM_FRONT = (CFLAG:36)/10
-        NUM_BACK = (CFLAG:36)%10
-        PRINTFORML      H:{NUM_FRONT}.{NUM_BACK}cm
-        
-        PRINTL
-        PRINT  호감도:
-        CALL PRINT_RANK(CFLAG:1, "MAX_50000")
-        PRINTFORM  {CFLAG:1}
-        PRINT        신뢰도:
-        CALL PRINT_RANK(CFLAG:2, "MAX_20000")
-        PRINTFORML  {CFLAG:2}
-    ENDIF
-
+    CALL TAGET_BASIC_STATE, T_CHARA
+    
     SELECTCASE PAGE_STATE
         CASE 111
             CALL SHOW_TALENT_STATE, T_CHARA
@@ -123,15 +163,9 @@ WHILE 1
         INPUT
         SELECTCASE RESULT
             CASE 88
-                IF T_CHARA == 0
-                    T_CHARA = CHARANUM - 1
-                ELSE
-                    T_CHARA = ((T_CHARA-1)%CHARANUM)
-                ENDIF
+                T_CHARA = ABS((T_CHARA - 1) % CHARANUM)
             CASE 22
-                T_CHARA = ((T_CHARA+1)%CHARANUM)
-                SIF T_CHARA == CHARANUM
-                    T_CHARA = 1
+                T_CHARA = ABS((T_CHARA + 1) % CHARANUM)
             CASE 999
                 RETURN 0
             CASE 111, 222, 333
@@ -181,8 +215,60 @@ WHILE 1
     ENDIF
 WEND
 
-TARGET = SAVE_TARGET
-;타겟 원위치.
+;---------------------------------------
+;@CHECK_MAXBASE, C_ID, CHECK_FLAG
+;타겟의 MAXBASE설정 하는 함수
+;---------------------------------------
+@CHECK_MAXBASE, C_ID, CHECK_FLAG
+#DIM DYNAMIC CHECK_FLAG
+;처음 하는지, 아니면 타겟의 변화로 인해 MAXBASE 수정인지 체크
+#DIM DYNAMIC C_ID
+;타겟의 넘버
+
+IF CHECK_FLAG == 0
+;처음 MAXBASE를 체크시
+    SIF MAXBASE:C_ID:21 == 0
+        MAXBASE:C_ID:21 = 10000
+    ;MAX사정 설정
+
+    SIF TALENT:C_ID:173 == 1 && MAXBASE:C_ID:22 == 0
+        MAXBASE:C_ID:22 = 5000
+    ;모유체질 일때, MAX모유 설정.
+    
+    IF MAXBASE:C_ID:23 == 0
+        IF TALENT:C_ID:204 == 0
+            MAXBASE:C_ID:23 = 5000
+        ELSE
+        ;TALENT 오줌싸개 라면
+            MAXBASE:C_ID:23 = 2500
+        ENDIF
+    ENDIF
+    ;MAX요의 설정
+    
+    SIF MAXBASE:C_ID:41 == 0
+        MAXBASE:C_ID:41 = 1000
+    ;MAX위화감 설정
+    
+    SIF MAXBASE:C_ID:42 == 0
+        MAXBASE:C_ID:42 = 1000
+    ;MAX수면도(기본) 설정
+    
+    SIF MAXBASE:C_ID:43 == 0
+        MAXBASE:C_ID:43 = 10000
+    ;MAX취기 설정
+    
+    SIF MAXBASE:C_ID:44 == 0
+        MAXBASE:C_ID:44 = 100
+    ;MAX피로 설정
+ELSE
+    SIF TALENT:C_ID:204 == 1
+    ;TALENT 오줌싸개 라면
+        MAXBASE:C_ID:23 = 2500
+    
+    SIF TALENT:C_ID:173 == 1
+    ;TALENT 모유체질 이라면
+        MAXBASE:C_ID:22 = 5000
+ENDIF
 
 ;---------------------------------------
 ;@SHOW_TALENT_STATE, T_CHARA

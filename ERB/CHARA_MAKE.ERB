@@ -48,15 +48,12 @@ ENDIF
 ;용사 출현 여부 플래그
 ;---------------------------------------
 @RAND_CHARA_MAKE
-#DIM DYNAMIC CHARA_XX
-;캐릭터 번호. CHARAXX.csv와 같음
 #DIM DYNAMIC MAKE_CHARA_NUM
 ;만들어진 캐릭터의 번호
 #DIM DYNAMIC DICE
 ;랜덤돌려서 구한 값
 #DIM DYNAMIC CHARA_JOB
 ;캐릭터 전투 직업
-
 
 WHILE 1
 	;CHARANUM - 1 = 만들어진 캐릭터의 번호
@@ -502,18 +499,45 @@ REPEAT 2
 	IF RAND:3 == 0 && COUNT == 1
         ;가슴사이즈 일때 66퍼 확률로 평범.
         ;1, 4, 4, 2, 1
-        DICE = RAND:12
-        IF DICE == 0
-            TALENT:(COUNT+131) = -2
-        ELSEIF DICE >= 1 && DICE < 5
-            TALENT:(COUNT+131) = -1
-        ELSEIF DICE >= 5 && DICE < 9
-            TALENT:(COUNT+131) = 1
-        ELSEIF DICE >= 9 && DICE < 11
-            TALENT:(COUNT+131) = 2
-        ELSE
-            TALENT:(COUNT+131) = 3
-        ENDIF
+		IF FLAG:31 == 0
+		;가슴평균:보통
+			DICE = RAND:12
+			IF DICE == 0
+				TALENT:(COUNT+131) = -2
+			ELSEIF DICE >= 1 && DICE < 5
+				TALENT:(COUNT+131) = -1
+			ELSEIF DICE >= 5 && DICE < 9
+				TALENT:(COUNT+131) = 1
+			ELSEIF DICE >= 9 && DICE < 11
+				TALENT:(COUNT+131) = 2
+			ELSE
+				TALENT:(COUNT+131) = 3
+			ENDIF
+		ELSEIF FLAG:31 == -1
+		;가슴평균:빈유
+			DICE = RAND:17
+			IF DICE >= 0 && DICE < 5
+				TALENT:(COUNT+131) = -2
+			ELSEIF DICE >= 5 && DICE < 15
+				TALENT:(COUNT+131) = -1
+			ELSEIF DICE == 15
+				TALENT:(COUNT+131) = 1
+			ELSE
+				TALENT:(COUNT+131) = 2
+			ENDIF
+		ELSEIF FLAG:31 == 1
+		;가슴평균:거유
+			DICE = RAND:20
+			ELSEIF DICE == 0
+				TALENT:(COUNT+131) = -1
+			ELSEIF DICE >= 1 && DICE < 7
+				TALENT:(COUNT+131) = 1
+			ELSEIF DICE >= 7 && DICE < 14
+				TALENT:(COUNT+131) = 2
+			ELSE
+				TALENT:(COUNT+131) = 3
+			ENDIF
+		ENDIF
     ENDIF
 REND
 
