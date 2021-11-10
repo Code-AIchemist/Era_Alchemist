@@ -3,7 +3,7 @@
 ;---------------------------------------
 @SHOW_MY_ITEM
 CALL SHOP_SETTING
-PRINTFORM 소지금 {MONEY} %MONEYLABEL%
+PRINTFORM 소지금 %MONEYSTR(MONEY, "######## ")%
 IF MONEY:1 > 0
     PRINTFORML (빚:{MONEY:1})
 ELSEIF MONEY:1 == 0
